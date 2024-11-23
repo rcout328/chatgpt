@@ -212,26 +212,23 @@ def handle_message(data):
                 'type': 'message',
                 'agent': 'User',
                 'content': message,
-                'analysisType': analysis_type,
-                'timestamp': time.time()
+                'analysisType': analysis_type
             })
             
-            # Then process agent response using the new chat method
-            for response in agency.chat(message, agent=agent_name):
-                # Add analysis type and timestamp to the response
+            # Then process agent response
+            response_generator = agency.chat(message, agent=agent_name)
+            
+            for response in response_generator:
                 if isinstance(response, dict):
+                    # Add analysis type to the response
                     response['analysisType'] = analysis_type
-                    if 'timestamp' not in response:
-                        response['timestamp'] = time.time()
                 else:
                     response = {
                         'type': 'message',
-                        'content': str(response),
+                        'content': response,
                         'agent': agent_name,
-                        'analysisType': analysis_type,
-                        'timestamp': time.time()
+                        'analysisType': analysis_type
                     }
-                
                 # Emit the response
                 emit('receive_message', response)
                 
@@ -241,8 +238,7 @@ def handle_message(data):
                 'type': 'error',
                 'agent': 'System',
                 'content': f"Error: {str(e)}",
-                'analysisType': analysis_type,
-                'timestamp': time.time()
+                'analysisType': analysis_type
             })
 
 def kill_process_on_port(port):

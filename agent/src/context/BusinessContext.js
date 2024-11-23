@@ -159,15 +159,29 @@ export function BusinessProvider({ children }) {
         initializeSocket();
       }, RESPONSE_TIMEOUT);
 
+      // Send message and wait for response
       socket.emit('send_message', {
         message: prompt,
         agent: 'MarketInsightCEO',
         analysisType: analysisType
-      }, (error) => {
-        if (error) {
-          console.error('Message send error:', error);
-          alert('Failed to send message. Please try again.');
+      });
+
+      // Handle response in the receive_message event listener
+      socket.on('receive_message', (data) => {
+        if (data.analysisType === analysisType) {
+          if (data.type === 'error') {
+            console.error('Error:', data.content);
+            alert(`Error: ${data.content}`);
+            setIsLoading(false);
+            return;
+          }
+
+          setAnalysisResults(prev => ({
+            ...prev,
+            [analysisType]: data.content
+          }));
           setIsLoading(false);
+
           if (responseTimeoutRef.current) {
             clearTimeout(responseTimeoutRef.current);
           }

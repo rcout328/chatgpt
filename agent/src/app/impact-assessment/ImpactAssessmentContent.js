@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react';
 import { socket, safeEmit, checkConnection } from '@/config/socket';
 
-export default function SWOTAnalysisContent() {
+export default function ImpactAssessmentContent() {
   const [userInput, setUserInput] = useState('');
-  const [swotAnalysis, setSwotAnalysis] = useState('');
+  const [impactAnalysis, setImpactAnalysis] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -31,8 +31,8 @@ export default function SWOTAnalysisContent() {
         return;
       }
 
-      if (data.analysisType === 'swot') {
-        setSwotAnalysis(data.content);
+      if (data.analysisType === 'impact') {
+        setImpactAnalysis(data.content);
       }
     };
 
@@ -44,7 +44,6 @@ export default function SWOTAnalysisContent() {
       setError('Connection error. Retrying...');
     });
 
-    // Check initial connection status
     setIsConnected(checkConnection());
 
     return () => {
@@ -63,11 +62,31 @@ export default function SWOTAnalysisContent() {
     setError(null);
 
     try {
-      // Send SWOT analysis request with retry mechanism
       await safeEmit('send_message', {
-        message: `Create a SWOT analysis for this startup/business: ${userInput}.`,
+        message: `Perform a comprehensive impact assessment for this business: ${userInput}. 
+        Please analyze:
+        1. Social Impact
+           - Community benefits
+           - Job creation and employment
+           - Social value creation
+           - Stakeholder engagement
+        2. Economic Impact
+           - Local economic contribution
+           - Market influence
+           - Economic sustainability
+           - Value chain impact
+        3. Environmental Impact
+           - Environmental footprint
+           - Resource utilization
+           - Sustainability practices
+           - Environmental initiatives
+        4. Long-term Impact
+           - Scalability potential
+           - Future impact projections
+           - Sustainability goals
+           - Legacy considerations`,
         agent: 'MarketInsightCEO',
-        analysisType: 'swot'
+        analysisType: 'impact'
       });
 
     } catch (error) {
@@ -82,7 +101,7 @@ export default function SWOTAnalysisContent() {
       <div className="max-w-7xl mx-auto">
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            SWOT Analysis
+            Impact Assessment Analysis
           </h1>
           <div className="text-sm text-gray-500">
             {isConnected ? 
@@ -99,7 +118,7 @@ export default function SWOTAnalysisContent() {
               <textarea
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
-                placeholder="Enter your startup/business details here..."
+                placeholder="Enter your business details for impact assessment..."
                 className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 h-32 resize-none text-black"
                 disabled={!isConnected || isLoading}
               />
@@ -113,24 +132,33 @@ export default function SWOTAnalysisContent() {
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              {isLoading ? 'Analyzing...' : 'Analyze'}
+              {isLoading ? 'Analyzing...' : 'Analyze Impact'}
             </button>
           </form>
         </div>
 
         {/* Analysis Results */}
         <div className="grid md:grid-cols-1 gap-6">
-          {/* SWOT Analysis Box */}
+          {/* Impact Analysis Box */}
           <div className="bg-white rounded-xl shadow-xl p-6">
             <h2 className="text-2xl font-semibold mb-4 text-gray-700 flex items-center">
-              <span className="mr-2">📊</span> SWOT Analysis
+              <span className="mr-2">⚡</span> Impact Assessment
             </h2>
             <div className="bg-gray-50 rounded-lg p-4 min-h-[300px]">
-              {swotAnalysis ? (
-                <div className="prose text-black whitespace-pre-wrap">{swotAnalysis}</div>
+              {error ? (
+                <div className="text-red-500">
+                  {error}
+                  <p className="text-sm mt-2">Please try refreshing the page or contact support if the problem persists.</p>
+                </div>
+              ) : isLoading ? (
+                <div className="flex justify-center items-center h-full">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+                </div>
+              ) : impactAnalysis ? (
+                <div className="prose text-black whitespace-pre-wrap">{impactAnalysis}</div>
               ) : (
                 <div className="text-gray-500 italic">
-                  SWOT analysis results will appear here...
+                  Impact assessment results will appear here...
                 </div>
               )}
             </div>
@@ -139,4 +167,4 @@ export default function SWOTAnalysisContent() {
       </div>
     </main>
   );
-}
+} 

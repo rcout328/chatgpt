@@ -10,7 +10,14 @@ export default function BusinessInput({ analysisType }) {
   };
 
   return (
-    <div className="mb-8">
+    <div className="max-w-7xl mx-auto mb-8">
+      <div className="text-sm text-gray-500 text-center mb-4">
+        {isConnected ? 
+          <span className="text-green-500">●</span> : 
+          <span className="text-red-500">●</span>
+        } {isConnected ? 'Connected' : 'Disconnected'}
+      </div>
+
       <form onSubmit={onSubmit} className="max-w-3xl mx-auto">
         <div className="mb-4">
           <textarea
