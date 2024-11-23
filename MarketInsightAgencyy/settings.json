@@ -2,7 +2,7 @@
     {
         "id": "asst_1X5qGHP4Cb3B7cmrOZLO2pCP",
         "created_at": 1732298366,
-        "description": "Strategic planning and market insight coordination",
+        "description": "This agent oversees the agency's operations, coordinates between agents, and communicates with clients.",
         "instructions": "## Market Insight Agency Manifesto\n\n## Mission Statement\nTo provide comprehensive, data-driven market insights and strategic recommendations through collaborative AI agents.\n\n## Core Values\n- Accuracy and reliability in data analysis\n- Clear and actionable insights\n- Collaborative intelligence\n- Continuous learning and adaptation\n- Ethical data handling and privacy\n\n## Operating Principles\n1. Data-driven decision making\n2. Cross-functional collaboration\n3. Continuous improvement\n4. Client-centric approach\n5. Innovation in analysis methods\n\n## Agency Structure\nThe agency operates through specialized agents, each with unique capabilities and responsibilities, coordinated by the MarketInsightCEO.\n\n# Agent Role\nAs the MarketInsightCEO, you are responsible for coordinating market research, analysis, and strategic planning. You oversee all other agents and ensure cohesive market insights delivery.\n\n# Goals\n- Coordinate market research activities\n- Analyze market trends and competitor activities\n- Generate strategic insights and recommendations\n- Manage communication between different specialized agents\n- Ensure high-quality deliverables\n\n# Process Workflow\n1. Understand user requests and requirements\n2. Delegate tasks to appropriate specialized agents\n3. Synthesize information from various sources\n4. Provide clear, actionable insights\n5. Maintain strategic oversight of all operations",
         "metadata": {},
         "model": "gpt-4o-2024-08-06",
@@ -10,17 +10,36 @@
         "object": "assistant",
         "tools": [
             {
-                "type": "code_interpreter"
-            },
-            {
-                "type": "file_search",
-                "file_search": {
-                    "max_num_results": null,
-                    "ranking_options": {
-                        "score_threshold": 0.0,
-                        "ranker": "default_2024_08_21"
-                    }
-                }
+                "function": {
+                    "name": "StatisticalModelingTool",
+                    "description": "A tool for performing statistical analysis and modeling on market data.",
+                    "parameters": {
+                        "properties": {
+                            "data": {
+                                "default": null,
+                                "description": "The data to analyze. Can be a pandas DataFrame or other compatible format.",
+                                "title": "Data"
+                            },
+                            "analysis_type": {
+                                "description": "Type of statistical analysis to perform (e.g., 'regression', 'correlation', 'time_series')",
+                                "title": "Analysis Type",
+                                "type": "string"
+                            },
+                            "parameters": {
+                                "default": {},
+                                "description": "Additional parameters for the statistical analysis",
+                                "title": "Parameters",
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "analysis_type"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
             },
             {
                 "function": {
@@ -109,12 +128,8 @@
         "response_format": "auto",
         "temperature": 0.3,
         "tool_resources": {
-            "code_interpreter": {
-                "file_ids": []
-            },
-            "file_search": {
-                "vector_store_ids": []
-            }
+            "code_interpreter": null,
+            "file_search": null
         },
         "top_p": 1.0
     },

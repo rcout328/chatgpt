@@ -9,7 +9,8 @@ from ReportingAgent.ReportingAgent import ReportingAgent
 from dotenv import load_dotenv
 import os
 from pathlib import Path
-import asyncio
+import time
+from typing import Dict, Generator
 
 # Define the MarketInsightAgency class
 class MarketInsightAgency(Agency):
@@ -20,58 +21,118 @@ class MarketInsightAgency(Agency):
             temperature=temperature,
             max_prompt_tokens=max_prompt_tokens
         )
+        self.conversation_thread = []
 
-    def chat(self, message, agent=None):
-        """Synchronous chat method that wraps async functionality"""
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        try:
-            response = loop.run_until_complete(self._async_chat(message, agent))
-            yield response
-        finally:
-            loop.close()
+    def format_message(self, message_obj):
+        """Format message for display"""
+        if not message_obj:
+            return None
 
-    async def _async_chat(self, message, agent=None):
-        """Internal async chat method"""
-        try:
-            if agent:
-                target_agent = None
-                for a in self.agents:
-                    if a.name == agent:
-                        target_agent = a
-                        break
-                if not target_agent:
-                    return {
-                        'type': 'error',
-                        'content': f"Agent {agent} not found",
-                        'agent': 'System'
-                    }
+        timestamp = time.time()
 
-                # Process the message using the async process_message method
-                response = await target_agent.process_message(message)
-                if isinstance(response, str):
-                    return {
-                        'type': 'message',
-                        'content': response,
-                        'agent': agent
-                    }
-                return response
-            else:
-                # Use the first agent (CEO) by default
-                response = await self.agents[0].process_message(message)
-                if isinstance(response, str):
-                    return {
-                        'type': 'message',
-                        'content': response,
-                        'agent': self.agents[0].name
-                    }
-                return response
-
-        except Exception as e:
+        # Handle function calls
+        if hasattr(message_obj, 'function_call'):
             return {
+                'type': 'function',
+                'agent': message_obj.sender_name if hasattr(message_obj, 'sender_name') else 'System',
+                'content': message_obj.function_call.arguments,
+                'function_name': message_obj.function_call.name,
+                'timestamp': timestamp
+            }
+        
+        # Handle validated responses from agents
+        elif isinstance(message_obj, dict) and 'type' in message_obj:
+            message_obj['timestamp'] = timestamp
+            return message_obj
+        
+        # Handle string messages
+        elif isinstance(message_obj, str):
+            return {
+                'type': 'message',
+                'agent': 'System',
+                'content': message_obj,
+                'timestamp': timestamp
+            }
+        
+        # Handle other message objects
+        elif hasattr(message_obj, 'content'):
+            return {
+                'type': 'message',
+                'agent': message_obj.sender_name if hasattr(message_obj, 'sender_name') else 'System',
+                'content': message_obj.content,
+                'timestamp': timestamp
+            }
+        
+        # Handle unknown formats
+        return {
+            'type': 'error',
+            'agent': 'System',
+            'content': 'Invalid message format',
+            'timestamp': timestamp
+        }
+
+    def get_agent_by_name(self, agent_name: str):
+        """Get agent instance by name"""
+        for agent in self.agents:
+            if agent.name == agent_name:
+                return agent
+        return None
+
+    def chat(self, message: str, agent: str = None) -> Generator[Dict, None, None]:
+        """Process chat messages and yield responses one by one"""
+        try:
+            # Add user message to conversation
+            yield {
+                'type': 'message',
+                'agent': 'User',
+                'content': message,
+                'timestamp': time.time()
+            }
+
+            # Route message to specific agent if specified
+            if agent:
+                agent_obj = self.get_agent_by_name(agent)
+                if agent_obj:
+                    # Create a single-agent agency for direct communication
+                    single_agent_agency = Agency(
+                        [agent_obj],
+                        shared_instructions='./agency_manifesto.md'
+                    )
+                    
+                    # Get response using the agency interface
+                    for response in single_agent_agency.get_completion(message, yield_messages=True):
+                        if response:
+                            formatted_response = self.format_message(response)
+                            if formatted_response:
+                                self.conversation_thread.append(formatted_response)
+                                yield formatted_response
+                                # Only add delay after regular messages, not functions
+                                if formatted_response.get('type') == 'message':
+                                    time.sleep(0.5)
+                else:
+                    yield {
+                        'type': 'error',
+                        'agent': 'System',
+                        'content': f"Agent '{agent}' not found",
+                        'timestamp': time.time()
+                    }
+            else:
+                # Default behavior - use main agency for completion
+                for response in self.agency.get_completion(message, yield_messages=True):
+                    if response:
+                        formatted_response = self.format_message(response)
+                        if formatted_response:
+                            self.conversation_thread.append(formatted_response)
+                            yield formatted_response
+                            if formatted_response.get('type') == 'message':
+                                time.sleep(0.5)
+            
+        except Exception as e:
+            yield {
                 'type': 'error',
-                'content': str(e),
-                'agent': 'System'
+                'agent': 'System',
+                'content': f"Error: {str(e)}",
+                'timestamp': time.time()
             }
 
 # Create agency function
@@ -103,15 +164,15 @@ def create_agency():
         agency_instance = MarketInsightAgency(
             [
                 ceo,  # CEO as entry point
-                [ceo, competitor_tracking],  # CEO can communicate with CompetitorTrackingAgent
-                [ceo, sentiment_analysis],   # CEO can communicate with SentimentAnalysisAgent
-                [ceo, icp_generator],        # CEO can communicate with ICPGeneratorAgent
-                [ceo, feedback_collector],   # CEO can communicate with FeedbackCollectorAgent
-                [ceo, market_analysis],      # CEO can communicate with MarketAnalysisAgent
-                [ceo, reporting],            # CEO can communicate with ReportingAgent
-                [competitor_tracking, market_analysis],  # CompetitorTrackingAgent can communicate with MarketAnalysisAgent
-                [sentiment_analysis, market_analysis],   # SentimentAnalysisAgent can communicate with MarketAnalysisAgent
-                [market_analysis, reporting]            # MarketAnalysisAgent can communicate with ReportingAgent
+                [ceo, competitor_tracking],
+                [ceo, sentiment_analysis],
+                [ceo, icp_generator],
+                [ceo, feedback_collector],
+                [ceo, market_analysis],
+                [ceo, reporting],
+                [competitor_tracking, market_analysis],
+                [sentiment_analysis, market_analysis],
+                [market_analysis, reporting]
             ],
             shared_instructions='agency_manifesto.md',
             temperature=float(os.getenv('TEMPERATURE', 0.3)),
