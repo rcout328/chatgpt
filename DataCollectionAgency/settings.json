@@ -1,0 +1,65 @@
+[
+    {
+        "id": "asst_Xi59basE4CUKg166PdrbYDKj",
+        "created_at": 1732346000,
+        "description": "An agent designed to perform web scraping tasks using BeautifulSoup. It is capable of handling HTML parsing and extracting data from web pages effectively.",
+        "instructions": "## Data Collection Agency Manifesto\n\n### Mission:\nThe mission of the Data Collection Agency is to automate the process of gathering information from Google search results and extracting data from specific websites. This agency aims to streamline data collection and presentation for users, enabling efficient and effective information retrieval.\n\n### Goals:\n- Utilize the SERP API to perform Google searches and retrieve relevant search results.\n- Implement web scraping techniques to extract data from specified websites.\n- Present the collected data to the user in a clear and organized manner.\n\n### Working Environment:\nThe agency operates in a digital environment, leveraging APIs and web scraping libraries to perform its tasks. It is designed to function autonomously, with minimal user intervention, while ensuring accurate and timely data collection and presentation.\n\n# Data Collector Agent Instructions\n\nYou are an agent that performs web scraping tasks using BeautifulSoup. You must be able to handle HTML parsing and extract data from web pages effectively.\n\n### Primary Instructions:\n1. Use BeautifulSoup to parse HTML content and extract relevant data from web pages.\n2. Ensure that all necessary libraries and dependencies, including BeautifulSoup, are installed and available for use.\n3. Handle any exceptions or errors that may occur during the scraping process to ensure smooth operation.\n4. Collaborate with other agents in the agency to integrate data collection results into the overall data presentation.\n5. Ensure that the data collected is accurate and organized before presenting it to the user.",
+        "metadata": {},
+        "model": "gpt-4o-2024-08-06",
+        "name": "DataCollector",
+        "object": "assistant",
+        "tools": [
+            {
+                "type": "code_interpreter"
+            },
+            {
+                "function": {
+                    "name": "WebScrapingTool",
+                    "description": "A tool for performing web scraping tasks using BeautifulSoup.\nThis tool fetches a web page, parses the HTML content, and extracts specific data based on given criteria or tags.",
+                    "parameters": {
+                        "properties": {
+                            "url": {
+                                "description": "The URL of the web page to scrape.",
+                                "title": "Url",
+                                "type": "string"
+                            },
+                            "tag": {
+                                "description": "The HTML tag to search for in the web page.",
+                                "title": "Tag",
+                                "type": "string"
+                            },
+                            "attribute": {
+                                "default": null,
+                                "description": "The attribute of the HTML tag to filter by, if any.",
+                                "title": "Attribute",
+                                "type": "string"
+                            },
+                            "attribute_value": {
+                                "default": null,
+                                "description": "The value of the attribute to filter by, if any.",
+                                "title": "Attribute Value",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "tag",
+                            "url"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            }
+        ],
+        "response_format": "auto",
+        "temperature": 0.3,
+        "tool_resources": {
+            "code_interpreter": {
+                "file_ids": []
+            },
+            "file_search": null
+        },
+        "top_p": 1.0
+    }
+]

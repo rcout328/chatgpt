@@ -1,8 +1,12 @@
 agency-swarm
 pandas
-spacy
-statsmodels
+numpy
 matplotlib
 jinja2
 python-dotenv
-gradio 
+gradio
+pytrends
+requests
+statista
+psycopg2-binary
+google-search-results 

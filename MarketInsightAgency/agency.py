@@ -6,6 +6,8 @@ from ICPGeneratorAgent import ICPGeneratorAgent
 from SentimentAnalysisAgent import SentimentAnalysisAgent
 from CompetitorTrackingAgent import CompetitorTrackingAgent
 from MarketInsightCEO import MarketInsightCEO
+from DataCollector import DataCollector
+from BrowsingAgent import BrowsingAgent
 from shared_tools.MarkdownWriter import MarkdownWriter
 from shared_tools.TaskReporter import TaskReporter
 from shared_tools.GPTDataProcessor import GPTDataProcessor
@@ -35,6 +37,8 @@ icp_generator = ICPGeneratorAgent()
 feedback_collector = FeedbackCollectorAgent()
 market_analysis = MarketAnalysisAgent()
 reporting = ReportingAgent()
+data_collector = DataCollector()
+browsing_agent = BrowsingAgent()
 
 # Create tool instances with unique names for each agent
 def create_tool_instance(tool_class, agent_prefix):
@@ -87,9 +91,16 @@ reporting.tools = [
     create_tool_instance(TaskReporter, "Report_")
 ]
 
+browsing_agent.tools = [
+    create_tool_instance(AIDataAnalyzer, "Browse_"),
+    create_tool_instance(MarkdownWriter, "Browse_"),
+    create_tool_instance(TaskReporter, "Browse_")
+]
+
 # Set common configurations for all agents
 agents = [ceo, competitor_tracking, sentiment_analysis, icp_generator, 
-          feedback_collector, market_analysis, reporting]
+          feedback_collector, market_analysis, reporting, 
+          data_collector, browsing_agent]
 
 for agent in agents:
     agent.temperature = 0.7
@@ -97,13 +108,17 @@ for agent in agents:
 
 # Create agency with GPT-enhanced structure
 agency = Agency([
-    ceo,  # CEO as entry point
+    ceo,
+    data_collector,
+    browsing_agent,
     [ceo, competitor_tracking],
     [ceo, sentiment_analysis],
     [ceo, icp_generator],
     [ceo, feedback_collector],
     [ceo, market_analysis],
-    [ceo, reporting]
+    [ceo, reporting],
+    [ceo, data_collector],
+    [ceo, browsing_agent]
 ], 
     shared_instructions='./agency_manifesto.md',
     max_prompt_tokens=4000,

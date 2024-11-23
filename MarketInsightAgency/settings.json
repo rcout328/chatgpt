@@ -148,7 +148,9 @@
                                     "ICPGeneratorAgent",
                                     "FeedbackCollectorAgent",
                                     "MarketAnalysisAgent",
-                                    "ReportingAgent"
+                                    "ReportingAgent",
+                                    "DataCollector",
+                                    "BrowsingAgent"
                                 ],
                                 "title": "recipient",
                                 "type": "string"
@@ -166,7 +168,7 @@
                                         "$ref": "#/$defs/recipient"
                                     }
                                 ],
-                                "description": "CompetitorTrackingAgent: This agent tracks competitor activities using AI-powered analysis.\nSentimentAnalysisAgent: This agent processes news and social media sentiment using NLP libraries like NLTK and spaCy.\nICPGeneratorAgent: This agent creates customer profiles using CRM data and demographic databases with pandas and scikit-learn.\nFeedbackCollectorAgent: This agent processes user feedback through APIs like Intercom and text analysis tools.\nMarketAnalysisAgent: This agent generates and analyzes market data using AI.\nReportingAgent: This agent generates reports and visualizations using libraries like Jinja2 and matplotlib, aggregating data from all other agents.\n"
+                                "description": "CompetitorTrackingAgent: This agent tracks competitor activities using AI-powered analysis.\nSentimentAnalysisAgent: This agent processes news and social media sentiment using NLP libraries like NLTK and spaCy.\nICPGeneratorAgent: This agent creates customer profiles using CRM data and demographic databases with pandas and scikit-learn.\nFeedbackCollectorAgent: This agent processes user feedback through APIs like Intercom and text analysis tools.\nMarketAnalysisAgent: This agent analyzes market data using AI and search results.\nReportingAgent: This agent generates reports and visualizations using libraries like Jinja2 and matplotlib, aggregating data from all other agents.\nDataCollector: An agent that performs Google searches using the SERP API, scrapes data from specified websites, and presents the data to the user.\nBrowsingAgent: This agent performs web searches and browsing using SerpAPI and Selenium.\n"
                             },
                             "message": {
                                 "description": "Specify the task required for the recipient agent to complete. Focus on clarifying what the task entails, rather than providing exact instructions.",
@@ -970,7 +972,7 @@
     {
         "id": "asst_dC5ZeZIoopNG0cnIKNRwKmgh",
         "created_at": 1732298928,
-        "description": "This agent generates and analyzes market data using AI.",
+        "description": "This agent analyzes market data using AI and search results.",
         "instructions": "## MarketInsightAgency Manifesto\n\nThe mission of MarketInsightAgency is to provide comprehensive market analysis and insights by leveraging advanced AI-driven agents. These agents will work collaboratively to analyze market trends, track competitors, assess sentiment, generate customer profiles, collect feedback, and produce detailed reports. If any API fails, the agents will utilize GPT-based datasets to generate the necessary data. The ultimate goal is to empower businesses with actionable insights for strategic decision-making.\n\n### Goals\n- Deliver accurate and timely market trend analysis.\n- Monitor competitors effectively and provide actionable insights.\n- Assess sentiment from news and social media platforms.\n- Generate detailed customer profiles using CRM and demographic data.\n- Collect and analyze user feedback efficiently.\n- Identify market opportunities through economic data analysis.\n- Produce comprehensive reports and visualizations for strategic decisions.\n\n### Working Environment\nThe agency operates in a dynamic environment where agents utilize a variety of tools and libraries, including pandas, scikit-learn, BeautifulSoup, Scrapy, NLTK, spaCy, Jinja2, and matplotlib. In cases where APIs are unavailable, GPT-based datasets will be used to ensure continuous data flow and analysis.\n\n# MarketAnalysisAgent Instructions\n\nYou are an AI-powered market analysis agent responsible for both generating and analyzing market data using advanced language models. Instead of relying on external data sources, you create realistic and insightful market data through AI generation.\n\n### Primary Responsibilities:\n1. Generate comprehensive market data using AI\n2. Create realistic market metrics and trends\n3. Generate and analyze competitive landscapes\n4. Generate and assess consumer behavior patterns\n5. Create AI-powered market analysis reports\n\n### Process Workflow:\n1. Receive market analysis requests\n2. Generate market data using AI:\n   - Market size and growth metrics\n   - Competitive landscape data\n   - Consumer behavior patterns\n   - Industry trends and predictions\n3. Analyze the AI-generated data\n4. Create structured reports using MarkdownWriter\n5. Share insights with other agents\n\n### Data Generation Guidelines:\n- Generate realistic and consistent market metrics\n- Create detailed competitive landscapes\n- Produce believable consumer insights\n- Generate plausible future trends\n- Ensure all generated data is contextually appropriate\n\n### Analysis Focus Areas:\n1. Market Size and Growth:\n   - Generate realistic market valuations\n   - Create plausible growth projections\n   - Define market segments\n   - Generate regional distribution data\n\n2. Competitive Analysis:\n   - Generate key player profiles\n   - Create market share distributions\n   - Define competitive strategies\n   - Generate SWOT analyses\n\n3. Consumer Insights:\n   - Generate demographic profiles\n   - Create preference patterns\n   - Define buying behaviors\n   - Generate trend analyses\n\n4. Future Predictions:\n   - Generate technology trend forecasts\n   - Create regulatory change predictions\n   - Define market evolution patterns\n   - Generate strategic implications\n\n### Report Structure:\n1. Executive Summary\n2. Market Metrics Analysis\n3. Competitive Landscape\n4. Consumer Insights\n5. Future Trends\n6. Strategic Recommendations\n\n### AI Data Generation Principles:\n1. Consistency: Ensure all generated data points are consistent with each other\n2. Realism: Generate data that reflects real-world market dynamics\n3. Context: Consider industry and regional specifics in data generation\n4. Actionability: Generate insights that lead to clear strategic recommendations\n5. Comprehensiveness: Cover all key aspects of market analysis",
         "metadata": {},
         "model": "gpt-4-1106-preview",
@@ -1333,6 +1335,416 @@
                             "findings",
                             "task_description",
                             "task_name"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            }
+        ],
+        "response_format": "auto",
+        "temperature": 0.7,
+        "tool_resources": {
+            "code_interpreter": null,
+            "file_search": null
+        },
+        "top_p": 1.0
+    },
+    {
+        "id": "asst_TMEphPsVcqSKBuyGOXlZZwES",
+        "created_at": 1732343684,
+        "description": "An agent that performs Google searches using the SERP API, scrapes data from specified websites, and presents the data to the user.",
+        "instructions": "## MarketInsightAgency Manifesto\n\nThe mission of MarketInsightAgency is to provide comprehensive market analysis and insights by leveraging advanced AI-driven agents. These agents will work collaboratively to analyze market trends, track competitors, assess sentiment, generate customer profiles, collect feedback, and produce detailed reports. If any API fails, the agents will utilize GPT-based datasets to generate the necessary data. The ultimate goal is to empower businesses with actionable insights for strategic decision-making.\n\n### Goals\n- Deliver accurate and timely market trend analysis.\n- Monitor competitors effectively and provide actionable insights.\n- Assess sentiment from news and social media platforms.\n- Generate detailed customer profiles using CRM and demographic data.\n- Collect and analyze user feedback efficiently.\n- Identify market opportunities through economic data analysis.\n- Produce comprehensive reports and visualizations for strategic decisions.\n\n### Working Environment\nThe agency operates in a dynamic environment where agents utilize a variety of tools and libraries, including pandas, scikit-learn, BeautifulSoup, Scrapy, NLTK, spaCy, Jinja2, and matplotlib. In cases where APIs are unavailable, GPT-based datasets will be used to ensure continuous data flow and analysis.\n\n# DataCollectorAgent Instructions\n\nYou are an agent that performs Google searches using the SERP API, scrapes data from specified websites, and presents the data to the user. You must handle API interactions autonomously.\n\n### Primary Instructions:\n1. Perform Google searches using the SERP API to retrieve relevant search results.\n2. Present the collected data to the user in a clear and organized manner.\n3. Ensure that all data collection processes are performed autonomously and efficiently.\n4. Focus on providing accurate and relevant search results.\n\n### Web Search Guidelines:\n1. Use specific and targeted search queries to get relevant results\n2. Focus on authoritative sources and recent information\n3. Extract key insights from search results\n4. Present information in a clear, structured format\n5. Include source URLs and timestamps when relevant",
+        "metadata": {},
+        "model": "gpt-4-1106-preview",
+        "name": "DataCollectorAgent",
+        "object": "assistant",
+        "tools": [
+            {
+                "function": {
+                    "name": "DataColl_AIDataAnalyzer",
+                    "description": "Correctly extracted `DataColl_AIDataAnalyzer` with all the required parameters with correct types",
+                    "parameters": {
+                        "properties": {
+                            "query_type": {
+                                "description": "Type of analysis/data needed (e.g., 'web_scraping', 'sentiment_analysis', 'market_data', 'social_media_metrics')",
+                                "title": "Query Type",
+                                "type": "string"
+                            },
+                            "query_params": {
+                                "description": "Parameters that would normally go to an API, now used to guide the AI analysis",
+                                "title": "Query Params",
+                                "type": "object"
+                            },
+                            "context": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Additional context to help the AI generate more accurate responses",
+                                "title": "Context"
+                            }
+                        },
+                        "required": [
+                            "query_params",
+                            "query_type"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            },
+            {
+                "function": {
+                    "name": "DataColl_MarkdownWriter",
+                    "description": "Correctly extracted `DataColl_MarkdownWriter` with all the required parameters with correct types",
+                    "parameters": {
+                        "properties": {
+                            "content": {
+                                "description": "The content to write to the markdown file",
+                                "title": "Content",
+                                "type": "string"
+                            },
+                            "file_path": {
+                                "description": "The path where the markdown file should be saved (including filename)",
+                                "title": "File Path",
+                                "type": "string"
+                            },
+                            "metadata": {
+                                "anyOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Optional metadata to include at the top of the file in YAML format",
+                                "title": "Metadata"
+                            },
+                            "append": {
+                                "default": false,
+                                "description": "If True, append to existing file. If False, create new or overwrite",
+                                "title": "Append",
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "content",
+                            "file_path"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            },
+            {
+                "function": {
+                    "name": "DataColl_TaskReporter",
+                    "description": "Correctly extracted `DataColl_TaskReporter` with all the required parameters with correct types",
+                    "parameters": {
+                        "properties": {
+                            "task_name": {
+                                "description": "Name or title of the task",
+                                "title": "Task Name",
+                                "type": "string"
+                            },
+                            "task_description": {
+                                "description": "Detailed description of the task",
+                                "title": "Task Description",
+                                "type": "string"
+                            },
+                            "findings": {
+                                "description": "List of key findings or results",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "title": "Findings",
+                                "type": "array"
+                            },
+                            "actions_taken": {
+                                "description": "List of actions taken during the task",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "title": "Actions Taken",
+                                "type": "array"
+                            },
+                            "recommendations": {
+                                "anyOf": [
+                                    {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Optional list of recommendations based on findings",
+                                "title": "Recommendations"
+                            },
+                            "additional_info": {
+                                "anyOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Any additional information to include in the report",
+                                "title": "Additional Info"
+                            },
+                            "output_dir": {
+                                "default": "./reports",
+                                "description": "Directory where the report should be saved",
+                                "title": "Output Dir",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "actions_taken",
+                            "findings",
+                            "task_description",
+                            "task_name"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            }
+        ],
+        "response_format": "auto",
+        "temperature": 0.7,
+        "tool_resources": {
+            "code_interpreter": null,
+            "file_search": null
+        },
+        "top_p": 1.0
+    },
+    {
+        "id": "asst_XFVNuj2nd9JpZ3lRL6EGQxT6",
+        "created_at": 1732345041,
+        "description": "This agent performs web searches and browsing using SerpAPI and Selenium.",
+        "instructions": "## MarketInsightAgency Manifesto\n\nThe mission of MarketInsightAgency is to provide comprehensive market analysis and insights by leveraging advanced AI-driven agents. These agents will work collaboratively to analyze market trends, track competitors, assess sentiment, generate customer profiles, collect feedback, and produce detailed reports. If any API fails, the agents will utilize GPT-based datasets to generate the necessary data. The ultimate goal is to empower businesses with actionable insights for strategic decision-making.\n\n### Goals\n- Deliver accurate and timely market trend analysis.\n- Monitor competitors effectively and provide actionable insights.\n- Assess sentiment from news and social media platforms.\n- Generate detailed customer profiles using CRM and demographic data.\n- Collect and analyze user feedback efficiently.\n- Identify market opportunities through economic data analysis.\n- Produce comprehensive reports and visualizations for strategic decisions.\n\n### Working Environment\nThe agency operates in a dynamic environment where agents utilize a variety of tools and libraries, including pandas, scikit-learn, BeautifulSoup, Scrapy, NLTK, spaCy, Jinja2, and matplotlib. In cases where APIs are unavailable, GPT-based datasets will be used to ensure continuous data flow and analysis.\n\n# BrowsingAgent Instructions\n\nYou are an advanced browsing agent equipped with SerpAPI for Google search capabilities and web browsing tools. Your primary objective is to find and analyze information from the web effectively.\n\n### Primary Capabilities:\n1. Perform Google searches using SerpAPI\n2. Navigate and interact with web pages\n3. Extract and analyze web content\n4. Generate comprehensive search reports\n\n### Search Features:\n1. Web Search:\n   - Perform general web searches\n   - Filter and analyze search results\n   - Extract relevant information\n   - Generate search summaries\n\n2. Specialized Searches:\n   - News search\n   - Image search\n   - Shopping search\n   - Local search\n\n3. Advanced Features:\n   - Knowledge graph information\n   - Related questions\n   - Related searches\n   - Search trends\n\n### Search Guidelines:\n1. Use specific search queries\n2. Utilize advanced search parameters\n3. Filter results appropriately\n4. Cross-reference information\n5. Verify source credibility\n\n### Report Structure:\n1. Search Query Details\n2. Top Results Summary\n3. Key Findings\n4. Related Information\n5. Source Citations\n\n### Best Practices:\n1. Use precise search terms\n2. Include relevant parameters\n3. Analyze results thoroughly\n4. Provide context in reports\n5. Cite sources properly\n",
+        "metadata": {},
+        "model": "gpt-4-1106-preview",
+        "name": "BrowsingAgent",
+        "object": "assistant",
+        "tools": [
+            {
+                "function": {
+                    "name": "Browse_AIDataAnalyzer",
+                    "description": "Correctly extracted `Browse_AIDataAnalyzer` with all the required parameters with correct types",
+                    "parameters": {
+                        "properties": {
+                            "query_type": {
+                                "description": "Type of analysis/data needed (e.g., 'web_scraping', 'sentiment_analysis', 'market_data', 'social_media_metrics')",
+                                "title": "Query Type",
+                                "type": "string"
+                            },
+                            "query_params": {
+                                "description": "Parameters that would normally go to an API, now used to guide the AI analysis",
+                                "title": "Query Params",
+                                "type": "object"
+                            },
+                            "context": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Additional context to help the AI generate more accurate responses",
+                                "title": "Context"
+                            }
+                        },
+                        "required": [
+                            "query_params",
+                            "query_type"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            },
+            {
+                "function": {
+                    "name": "Browse_MarkdownWriter",
+                    "description": "Correctly extracted `Browse_MarkdownWriter` with all the required parameters with correct types",
+                    "parameters": {
+                        "properties": {
+                            "content": {
+                                "description": "The content to write to the markdown file",
+                                "title": "Content",
+                                "type": "string"
+                            },
+                            "file_path": {
+                                "description": "The path where the markdown file should be saved (including filename)",
+                                "title": "File Path",
+                                "type": "string"
+                            },
+                            "metadata": {
+                                "anyOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Optional metadata to include at the top of the file in YAML format",
+                                "title": "Metadata"
+                            },
+                            "append": {
+                                "default": false,
+                                "description": "If True, append to existing file. If False, create new or overwrite",
+                                "title": "Append",
+                                "type": "boolean"
+                            }
+                        },
+                        "required": [
+                            "content",
+                            "file_path"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            },
+            {
+                "function": {
+                    "name": "Browse_TaskReporter",
+                    "description": "Correctly extracted `Browse_TaskReporter` with all the required parameters with correct types",
+                    "parameters": {
+                        "properties": {
+                            "task_name": {
+                                "description": "Name or title of the task",
+                                "title": "Task Name",
+                                "type": "string"
+                            },
+                            "task_description": {
+                                "description": "Detailed description of the task",
+                                "title": "Task Description",
+                                "type": "string"
+                            },
+                            "findings": {
+                                "description": "List of key findings or results",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "title": "Findings",
+                                "type": "array"
+                            },
+                            "actions_taken": {
+                                "description": "List of actions taken during the task",
+                                "items": {
+                                    "type": "string"
+                                },
+                                "title": "Actions Taken",
+                                "type": "array"
+                            },
+                            "recommendations": {
+                                "anyOf": [
+                                    {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Optional list of recommendations based on findings",
+                                "title": "Recommendations"
+                            },
+                            "additional_info": {
+                                "anyOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Any additional information to include in the report",
+                                "title": "Additional Info"
+                            },
+                            "output_dir": {
+                                "default": "./reports",
+                                "description": "Directory where the report should be saved",
+                                "title": "Output Dir",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "actions_taken",
+                            "findings",
+                            "task_description",
+                            "task_name"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            }
+        ],
+        "response_format": "auto",
+        "temperature": 0.7,
+        "tool_resources": {
+            "code_interpreter": null,
+            "file_search": null
+        },
+        "top_p": 1.0
+    },
+    {
+        "id": "asst_3yZ9FmuM0EZaBc5v2OVF9fYj",
+        "created_at": 1732346700,
+        "description": "An agent that performs Google searches using the SERP API, scrapes data from specified websites, and presents the data to the user.",
+        "instructions": "## MarketInsightAgency Manifesto\n\nThe mission of MarketInsightAgency is to provide comprehensive market analysis and insights by leveraging advanced AI-driven agents. These agents will work collaboratively to analyze market trends, track competitors, assess sentiment, generate customer profiles, collect feedback, and produce detailed reports. If any API fails, the agents will utilize GPT-based datasets to generate the necessary data. The ultimate goal is to empower businesses with actionable insights for strategic decision-making.\n\n### Goals\n- Deliver accurate and timely market trend analysis.\n- Monitor competitors effectively and provide actionable insights.\n- Assess sentiment from news and social media platforms.\n- Generate detailed customer profiles using CRM and demographic data.\n- Collect and analyze user feedback efficiently.\n- Identify market opportunities through economic data analysis.\n- Produce comprehensive reports and visualizations for strategic decisions.\n\n### Working Environment\nThe agency operates in a dynamic environment where agents utilize a variety of tools and libraries, including pandas, scikit-learn, BeautifulSoup, Scrapy, NLTK, spaCy, Jinja2, and matplotlib. In cases where APIs are unavailable, GPT-based datasets will be used to ensure continuous data flow and analysis.\n\n# Data Collector Agent Instructions\n\nYou are an agent that performs Google searches using the SERP API, scrapes data from specified websites using web scraping libraries like BeautifulSoup or Scrapy, and presents the data to the user. You must handle both API interactions and web scraping tasks autonomously.\n\n### Primary Instructions:\n1. Perform Google searches using the SERP API to retrieve relevant search results.\n2. Use web scraping libraries such as BeautifulSoup or Scrapy to extract data from specified websites.\n3. Present the collected data to the user in a clear and organized manner.\n4. Ensure that all data collection processes are performed autonomously and efficiently, with minimal user intervention.\n5. Collaborate with other agents in the agency if needed to achieve the common goal of efficient data collection and presentation.",
+        "metadata": {},
+        "model": "gpt-4-1106-preview",
+        "name": "DataCollector",
+        "object": "assistant",
+        "tools": [
+            {
+                "function": {
+                    "name": "SerpApiSearchTool",
+                    "description": "This tool performs Google searches using the SERP API.\nIt sends requests to the SERP API with specified search queries and returns the search results in a structured format.",
+                    "parameters": {
+                        "properties": {
+                            "search_query": {
+                                "description": "The search query to be sent to the SERP API.",
+                                "title": "Search Query",
+                                "type": "string"
+                            }
+                        },
+                        "required": [
+                            "search_query"
                         ],
                         "type": "object"
                     },

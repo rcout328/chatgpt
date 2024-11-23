@@ -35,12 +35,7 @@ reporting = ReportingAgent()
 # Create agency with simplified structure
 agency = Agency([
     ceo,  # CEO as entry point
-    [ceo, competitor_tracking],
-    [ceo, sentiment_analysis],
-    [ceo, icp_generator],
-    [ceo, feedback_collector],
-    [ceo, market_analysis],
-    [ceo, reporting]
+   e
 ], 
     shared_instructions='./agency_manifesto.md',
     max_prompt_tokens=25000,
