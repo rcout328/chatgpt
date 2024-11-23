@@ -61,5 +61,64 @@
             "file_search": null
         },
         "top_p": 1.0
+    },
+    {
+        "id": "asst_EtGwtOGoHdgz6xsAt7RZrc6y",
+        "created_at": 1732350423,
+        "description": "An agent specialized in analyzing data collected by the DataCollector agent, performing statistical analysis and generating insights.",
+        "instructions": "## Data Collection Agency Manifesto\n\n### Mission:\nThe mission of the Data Collection Agency is to automate the process of gathering information from Google search results and extracting data from specific websites. This agency aims to streamline data collection and presentation for users, enabling efficient and effective information retrieval.\n\n### Goals:\n- Utilize the SERP API to perform Google searches and retrieve relevant search results.\n- Implement web scraping techniques to extract data from specified websites.\n- Present the collected data to the user in a clear and organized manner.\n\n### Working Environment:\nThe agency operates in a digital environment, leveraging APIs and web scraping libraries to perform its tasks. It is designed to function autonomously, with minimal user intervention, while ensuring accurate and timely data collection and presentation.\n\n# Data Analysis Agent Instructions\n\nYou are an agent specialized in analyzing data collected by the DataCollector agent. Your role is to process, analyze, and extract meaningful insights from the collected data.\n\n### Primary Responsibilities:\n1. Receive and process data from the DataCollector agent\n2. Perform statistical analysis on the collected data\n3. Generate insights and identify patterns in the data\n4. Create data summaries and reports\n5. Provide actionable recommendations based on the analysis\n\n### Process Workflow:\n1. Receive collected data from the DataCollector agent\n2. Clean and preprocess the data as needed\n3. Perform appropriate statistical analyses based on the data type and requirements\n4. Generate visualizations to help understand the data\n5. Summarize findings and insights\n6. Present results in a clear and actionable format ",
+        "metadata": {},
+        "model": "gpt-4o-2024-08-06",
+        "name": "DataAnalysis",
+        "object": "assistant",
+        "tools": [
+            {
+                "function": {
+                    "name": "DataAnalysisTool",
+                    "description": "A tool for analyzing data using pandas and numpy, generating statistical insights and visualizations.",
+                    "parameters": {
+                        "properties": {
+                            "data": {
+                                "description": "The data to analyze in CSV string format",
+                                "title": "Data",
+                                "type": "string"
+                            },
+                            "analysis_type": {
+                                "description": "Type of analysis to perform: 'basic_stats', 'correlation', 'distribution', or 'custom'",
+                                "title": "Analysis Type",
+                                "type": "string"
+                            },
+                            "custom_params": {
+                                "anyOf": [
+                                    {
+                                        "type": "object"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Additional parameters for custom analysis",
+                                "title": "Custom Params"
+                            }
+                        },
+                        "required": [
+                            "analysis_type",
+                            "data"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            }
+        ],
+        "response_format": "auto",
+        "temperature": 0.3,
+        "tool_resources": {
+            "code_interpreter": null,
+            "file_search": null
+        },
+        "top_p": 1.0
     }
 ]
