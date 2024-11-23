@@ -33,7 +33,7 @@ class MarketInsightCEO(Agent):
         try:
             # Create a chat completion using the new OpenAI API format
             response = await client.chat.completions.create(
-                model=os.getenv('OPENAI_MODEL', "gpt-4-1106-preview"),
+                model=os.getenv('OPENAI_MODEL', "gpt-3.5-turbo"),
                 messages=[
                     {"role": "system", "content": self.instructions},
                     {"role": "user", "content": message}

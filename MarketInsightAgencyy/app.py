@@ -203,6 +203,7 @@ def handle_disconnect():
 def handle_message(data):
     message = data.get('message')
     agent_name = data.get('agent')
+    analysis_type = data.get('analysisType')
     
     if message:
         try:
@@ -210,13 +211,24 @@ def handle_message(data):
             emit('receive_message', {
                 'type': 'message',
                 'agent': 'User',
-                'content': message
+                'content': message,
+                'analysisType': analysis_type
             })
             
             # Then process agent response
             response_generator = agency.chat(message, agent=agent_name)
             
             for response in response_generator:
+                if isinstance(response, dict):
+                    # Add analysis type to the response
+                    response['analysisType'] = analysis_type
+                else:
+                    response = {
+                        'type': 'message',
+                        'content': response,
+                        'agent': agent_name,
+                        'analysisType': analysis_type
+                    }
                 # Emit the response
                 emit('receive_message', response)
                 
@@ -225,7 +237,8 @@ def handle_message(data):
             emit('receive_message', {
                 'type': 'error',
                 'agent': 'System',
-                'content': f"Error: {str(e)}"
+                'content': f"Error: {str(e)}",
+                'analysisType': analysis_type
             })
 
 def kill_process_on_port(port):
