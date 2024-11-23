@@ -1,12 +1,3 @@
+from .agency import MarketInsightAgency, create_agency, agency
 
-from .MarketInsightCEO import MarketInsightCEO
-from .TrendAnalysisAgent import TrendAnalysisAgent
-from .MarketInsightCEO import MarketInsightCEO
-from .DataCollectorAgent import DataCollectorAgent
-from .DataAnalystAgent import DataAnalystAgent
-from .CompetitorTrackingAgent import CompetitorTrackingAgent
-from .SentimentAnalysisAgent import SentimentAnalysisAgent
-from .ICPGeneratorAgent import ICPGeneratorAgent
-from .FeedbackCollectorAgent import FeedbackCollectorAgent
-from .MarketAnalysisAgent import MarketAnalysisAgent
-from .ReportingAgent import ReportingAgent
+__all__ = ['MarketInsightAgency', 'create_agency', 'agency']
