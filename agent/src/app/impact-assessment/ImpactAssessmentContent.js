@@ -2,13 +2,34 @@
 
 import { useState, useEffect } from 'react';
 import { socket, safeEmit, checkConnection } from '@/config/socket';
+import { useStoredInput } from '@/hooks/useStoredInput';
 
 export default function ImpactAssessmentContent() {
-  const [userInput, setUserInput] = useState('');
+  const [userInput, setUserInput] = useStoredInput();
   const [impactAnalysis, setImpactAnalysis] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [mounted, setMounted] = useState(false);
+  const [lastAnalyzedInput, setLastAnalyzedInput] = useState('');
+
+  // Load stored analysis on mount and when userInput changes
+  useEffect(() => {
+    setMounted(true);
+    const storedAnalysis = localStorage.getItem(`impactAnalysis_${userInput}`);
+    
+    if (storedAnalysis) {
+      setImpactAnalysis(storedAnalysis);
+      setLastAnalyzedInput(userInput); // Track this input as analyzed
+    } else {
+      setImpactAnalysis('');
+      // Auto-submit only if input is different from last analyzed
+      if (isConnected && mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
+        handleSubmit(new Event('submit'));
+        setLastAnalyzedInput(userInput); // Update last analyzed input
+      }
+    }
+  }, [userInput, isConnected, mounted]); // Dependencies include connection status
 
   useEffect(() => {
     const handleConnect = () => {
@@ -32,7 +53,11 @@ export default function ImpactAssessmentContent() {
       }
 
       if (data.analysisType === 'impact') {
-        setImpactAnalysis(data.content);
+        const analysisResult = data.content;
+        setImpactAnalysis(analysisResult);
+        // Store the analysis result and update last analyzed input
+        localStorage.setItem(`impactAnalysis_${userInput}`, analysisResult);
+        setLastAnalyzedInput(userInput);
       }
     };
 
@@ -52,11 +77,18 @@ export default function ImpactAssessmentContent() {
       socket.off('receive_message', handleReceiveMessage);
       socket.off('connect_error');
     };
-  }, []);
+  }, [userInput]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!userInput.trim() || isLoading) return;
+
+    // Check if analysis already exists for this exact input
+    const storedAnalysis = localStorage.getItem(`impactAnalysis_${userInput}`);
+    if (storedAnalysis && userInput === lastAnalyzedInput) {
+      setImpactAnalysis(storedAnalysis);
+      return; // Don't proceed with API call if we have stored results for this input
+    }
 
     setIsLoading(true);
     setError(null);
@@ -95,6 +127,11 @@ export default function ImpactAssessmentContent() {
       setIsLoading(false);
     }
   };
+
+  // Don't render until mounted to prevent hydration issues
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">

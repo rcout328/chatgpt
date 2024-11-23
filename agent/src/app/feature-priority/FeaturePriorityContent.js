@@ -2,13 +2,34 @@
 
 import { useState, useEffect } from 'react';
 import { socket, safeEmit, checkConnection } from '@/config/socket';
+import { useStoredInput } from '@/hooks/useStoredInput';
 
 export default function FeaturePriorityContent() {
-  const [userInput, setUserInput] = useState('');
+  const [userInput, setUserInput] = useStoredInput();
   const [featureAnalysis, setFeatureAnalysis] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [mounted, setMounted] = useState(false);
+  const [lastAnalyzedInput, setLastAnalyzedInput] = useState('');
+
+  // Load stored analysis on mount and when userInput changes
+  useEffect(() => {
+    setMounted(true);
+    const storedAnalysis = localStorage.getItem(`featureAnalysis_${userInput}`);
+    
+    if (storedAnalysis) {
+      setFeatureAnalysis(storedAnalysis);
+      setLastAnalyzedInput(userInput); // Track this input as analyzed
+    } else {
+      setFeatureAnalysis('');
+      // Auto-submit only if input is different from last analyzed
+      if (isConnected && mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
+        handleSubmit(new Event('submit'));
+        setLastAnalyzedInput(userInput); // Update last analyzed input
+      }
+    }
+  }, [userInput, isConnected, mounted]);
 
   useEffect(() => {
     const handleConnect = () => {
@@ -32,7 +53,11 @@ export default function FeaturePriorityContent() {
       }
 
       if (data.analysisType === 'feature') {
-        setFeatureAnalysis(data.content);
+        const analysisResult = data.content;
+        setFeatureAnalysis(analysisResult);
+        // Store the analysis result and update last analyzed input
+        localStorage.setItem(`featureAnalysis_${userInput}`, analysisResult);
+        setLastAnalyzedInput(userInput);
       }
     };
 
@@ -44,7 +69,6 @@ export default function FeaturePriorityContent() {
       setError('Connection error. Retrying...');
     });
 
-    // Check initial connection status
     setIsConnected(checkConnection());
 
     return () => {
@@ -53,24 +77,46 @@ export default function FeaturePriorityContent() {
       socket.off('receive_message', handleReceiveMessage);
       socket.off('connect_error');
     };
-  }, []);
+  }, [userInput]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!userInput.trim() || isLoading) return;
+
+    // Check if analysis already exists for this exact input
+    const storedAnalysis = localStorage.getItem(`featureAnalysis_${userInput}`);
+    if (storedAnalysis && userInput === lastAnalyzedInput) {
+      setFeatureAnalysis(storedAnalysis);
+      return; // Don't proceed with API call if we have stored results for this input
+    }
 
     setIsLoading(true);
     setError(null);
 
     try {
       await safeEmit('send_message', {
-        message: `Analyze feature priorities for this startup/business: ${userInput}. 
+        message: `Analyze feature priorities for this business: ${userInput}. 
         Please provide:
-        1. Critical features to implement first
-        2. Priority ranking of features
-        3. Implementation timeline recommendations
-        4. Resource allocation suggestions
-        5. Dependencies and technical considerations`,
+        1. Core Features
+           - Essential functionalities
+           - Must-have features
+           - Core user requirements
+           - Basic capabilities
+        2. Priority Assessment
+           - Feature importance ranking
+           - User impact analysis
+           - Development complexity
+           - Resource requirements
+        3. Implementation Timeline
+           - Development phases
+           - Feature dependencies
+           - Resource allocation
+           - Milestone planning
+        4. Success Metrics
+           - Performance indicators
+           - User adoption metrics
+           - Impact measurement
+           - ROI assessment`,
         agent: 'MarketInsightCEO',
         analysisType: 'feature'
       });
@@ -81,6 +127,10 @@ export default function FeaturePriorityContent() {
       setIsLoading(false);
     }
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">
@@ -104,7 +154,7 @@ export default function FeaturePriorityContent() {
               <textarea
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
-                placeholder="Enter your startup/business details for feature prioritization..."
+                placeholder="Enter your business details for feature prioritization..."
                 className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 h-32 resize-none text-black"
                 disabled={!isConnected || isLoading}
               />

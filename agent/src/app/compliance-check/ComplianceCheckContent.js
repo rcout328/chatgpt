@@ -2,13 +2,34 @@
 
 import { useState, useEffect } from 'react';
 import { socket, safeEmit, checkConnection } from '@/config/socket';
+import { useStoredInput } from '@/hooks/useStoredInput';
 
 export default function ComplianceCheckContent() {
-  const [userInput, setUserInput] = useState('');
+  const [userInput, setUserInput] = useStoredInput();
   const [complianceAnalysis, setComplianceAnalysis] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [mounted, setMounted] = useState(false);
+  const [lastAnalyzedInput, setLastAnalyzedInput] = useState('');
+
+  // Load stored analysis on mount and when userInput changes
+  useEffect(() => {
+    setMounted(true);
+    const storedAnalysis = localStorage.getItem(`complianceAnalysis_${userInput}`);
+    
+    if (storedAnalysis) {
+      setComplianceAnalysis(storedAnalysis);
+      setLastAnalyzedInput(userInput); // Track this input as analyzed
+    } else {
+      setComplianceAnalysis('');
+      // Auto-submit only if input is different from last analyzed
+      if (isConnected && mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
+        handleSubmit(new Event('submit'));
+        setLastAnalyzedInput(userInput); // Update last analyzed input
+      }
+    }
+  }, [userInput, isConnected, mounted]);
 
   useEffect(() => {
     const handleConnect = () => {
@@ -32,7 +53,11 @@ export default function ComplianceCheckContent() {
       }
 
       if (data.analysisType === 'compliance') {
-        setComplianceAnalysis(data.content);
+        const analysisResult = data.content;
+        setComplianceAnalysis(analysisResult);
+        // Store the analysis result and update last analyzed input
+        localStorage.setItem(`complianceAnalysis_${userInput}`, analysisResult);
+        setLastAnalyzedInput(userInput);
       }
     };
 
@@ -52,28 +77,46 @@ export default function ComplianceCheckContent() {
       socket.off('receive_message', handleReceiveMessage);
       socket.off('connect_error');
     };
-  }, []);
+  }, [userInput]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!userInput.trim() || isLoading) return;
 
+    // Check if analysis already exists for this exact input
+    const storedAnalysis = localStorage.getItem(`complianceAnalysis_${userInput}`);
+    if (storedAnalysis && userInput === lastAnalyzedInput) {
+      setComplianceAnalysis(storedAnalysis);
+      return; // Don't proceed with API call if we have stored results for this input
+    }
+
     setIsLoading(true);
     setError(null);
 
     try {
-      // Send compliance analysis request
       await safeEmit('send_message', {
         message: `Analyze compliance requirements for this business: ${userInput}. 
         Please provide:
-        1. Regulatory requirements and standards
-        2. Industry-specific regulations
-        3. Required licenses and permits
-        4. Data protection and privacy requirements
-        5. Compliance standards and certifications
-        6. Reporting and documentation requirements
-        7. Compliance monitoring procedures
-        8. Potential compliance risks and mitigation strategies`,
+        1. Regulatory Framework
+           - Industry regulations
+           - Legal requirements
+           - Licensing needs
+           - Reporting obligations
+        2. Data Protection & Privacy
+           - Privacy requirements
+           - Data handling standards
+           - Security protocols
+           - User rights management
+        3. Operational Compliance
+           - Standard operating procedures
+           - Quality control measures
+           - Documentation requirements
+           - Audit protocols
+        4. Risk Management
+           - Compliance risks
+           - Mitigation strategies
+           - Monitoring systems
+           - Incident response plans`,
         agent: 'MarketInsightCEO',
         analysisType: 'compliance'
       });
@@ -84,6 +127,10 @@ export default function ComplianceCheckContent() {
       setIsLoading(false);
     }
   };
+
+  if (!mounted) {
+    return null;
+  }
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">

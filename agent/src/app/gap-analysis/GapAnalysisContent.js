@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import { socket, safeEmit, checkConnection } from '@/config/socket';
 import { useStoredInput } from '@/hooks/useStoredInput';
 
-export default function MarketAssessmentContent() {
+export default function GapAnalysisContent() {
   const [userInput, setUserInput] = useStoredInput();
-  const [marketAssessment, setMarketAssessment] = useState('');
+  const [gapAnalysis, setGapAnalysis] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -16,13 +16,13 @@ export default function MarketAssessmentContent() {
   // Load stored analysis on mount and when userInput changes
   useEffect(() => {
     setMounted(true);
-    const storedAnalysis = localStorage.getItem(`marketAssessment_${userInput}`);
+    const storedAnalysis = localStorage.getItem(`gapAnalysis_${userInput}`);
     
     if (storedAnalysis) {
-      setMarketAssessment(storedAnalysis);
+      setGapAnalysis(storedAnalysis);
       setLastAnalyzedInput(userInput); // Track this input as analyzed
     } else {
-      setMarketAssessment('');
+      setGapAnalysis('');
       // Auto-submit only if input is different from last analyzed
       if (isConnected && mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
         handleSubmit(new Event('submit'));
@@ -52,11 +52,11 @@ export default function MarketAssessmentContent() {
         return;
       }
 
-      if (data.analysisType === 'marketAssessment') {
+      if (data.analysisType === 'gap') {
         const analysisResult = data.content;
-        setMarketAssessment(analysisResult);
+        setGapAnalysis(analysisResult);
         // Store the analysis result and update last analyzed input
-        localStorage.setItem(`marketAssessment_${userInput}`, analysisResult);
+        localStorage.setItem(`gapAnalysis_${userInput}`, analysisResult);
         setLastAnalyzedInput(userInput);
       }
     };
@@ -84,9 +84,9 @@ export default function MarketAssessmentContent() {
     if (!userInput.trim() || isLoading) return;
 
     // Check if analysis already exists for this exact input
-    const storedAnalysis = localStorage.getItem(`marketAssessment_${userInput}`);
+    const storedAnalysis = localStorage.getItem(`gapAnalysis_${userInput}`);
     if (storedAnalysis && userInput === lastAnalyzedInput) {
-      setMarketAssessment(storedAnalysis);
+      setGapAnalysis(storedAnalysis);
       return; // Don't proceed with API call if we have stored results for this input
     }
 
@@ -95,30 +95,30 @@ export default function MarketAssessmentContent() {
 
     try {
       await safeEmit('send_message', {
-        message: `Analyze the market size and potential for this business: ${userInput}. 
-        Please provide:
-        1. Total addressable market (TAM)
-           - Market size calculation
-           - Growth potential
-           - Market segments
-           - Geographic scope
-        2. Serviceable addressable market (SAM)
-           - Target market definition
-           - Market accessibility
-           - Customer segments
-           - Market reach
-        3. Serviceable obtainable market (SOM)
-           - Realistic market share
-           - Competition analysis
-           - Market penetration
-           - Growth strategy
-        4. Market Dynamics
-           - Market trends
-           - Entry barriers
-           - Competitive landscape
-           - Growth drivers`,
+        message: `Perform a comprehensive gap analysis for this business: ${userInput}. 
+        Please analyze:
+        1. Current State
+           - Existing capabilities
+           - Available resources
+           - Current performance
+           - Market position
+        2. Desired State
+           - Target objectives
+           - Industry benchmarks
+           - Best practices
+           - Competitive standards
+        3. Gap Identification
+           - Performance gaps
+           - Resource gaps
+           - Technology gaps
+           - Capability gaps
+        4. Recommendations
+           - Action items
+           - Resource requirements
+           - Timeline suggestions
+           - Priority areas`,
         agent: 'MarketInsightCEO',
-        analysisType: 'marketAssessment'
+        analysisType: 'gap'
       });
 
     } catch (error) {
@@ -137,7 +137,7 @@ export default function MarketAssessmentContent() {
       <div className="max-w-7xl mx-auto">
         <header className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Market Assessment Analysis
+            Gap Analysis
           </h1>
           <div className="text-sm text-gray-500">
             {isConnected ? 
@@ -154,7 +154,7 @@ export default function MarketAssessmentContent() {
               <textarea
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
-                placeholder="Enter your business details for market assessment..."
+                placeholder="Enter your business details for gap analysis..."
                 className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 h-32 resize-none text-black"
                 disabled={!isConnected || isLoading}
               />
@@ -168,17 +168,17 @@ export default function MarketAssessmentContent() {
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              {isLoading ? 'Analyzing...' : 'Analyze Market'}
+              {isLoading ? 'Analyzing...' : 'Analyze Gaps'}
             </button>
           </form>
         </div>
 
         {/* Analysis Results */}
         <div className="grid md:grid-cols-1 gap-6">
-          {/* Market Assessment Box */}
+          {/* Gap Analysis Box */}
           <div className="bg-white rounded-xl shadow-xl p-6">
             <h2 className="text-2xl font-semibold mb-4 text-gray-700 flex items-center">
-              <span className="mr-2">📊</span> Market Assessment
+              <span className="mr-2">🔍</span> Gap Analysis
             </h2>
             <div className="bg-gray-50 rounded-lg p-4 min-h-[300px]">
               {error ? (
@@ -190,11 +190,11 @@ export default function MarketAssessmentContent() {
                 <div className="flex justify-center items-center h-full">
                   <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
                 </div>
-              ) : marketAssessment ? (
-                <div className="prose text-black whitespace-pre-wrap">{marketAssessment}</div>
+              ) : gapAnalysis ? (
+                <div className="prose text-black whitespace-pre-wrap">{gapAnalysis}</div>
               ) : (
                 <div className="text-gray-500 italic">
-                  Market assessment results will appear here...
+                  Gap analysis results will appear here...
                 </div>
               )}
             </div>
