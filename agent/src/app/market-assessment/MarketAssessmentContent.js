@@ -16,6 +16,8 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // Register ChartJS components
 ChartJS.register(
@@ -314,17 +316,18 @@ export default function MarketAssessmentContent() {
         </div>
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 gap-6 mb-8">
           {/* Charts Section */}
           {marketData && (
-            <div ref={chartsRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div ref={chartsRef} className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Market Size Growth Chart */}
               <div className="bg-[#1D1D1F] p-6 rounded-2xl border border-purple-500/10">
-                <h3 className="text-xl font-semibold mb-4 text-gray-200">Market Size Growth</h3>
-                <div className="h-[300px]">
+                <div className="h-[400px]">
                   <Line 
                     options={{
                       ...chartOptions,
+                      maintainAspectRatio: false,
+                      aspectRatio: 1.5,
                       plugins: {
                         ...chartOptions.plugins,
                         title: { ...chartOptions.plugins.title, text: 'Market Size Projection' }
@@ -337,11 +340,12 @@ export default function MarketAssessmentContent() {
 
               {/* Market Distribution Chart */}
               <div className="bg-[#1D1D1F] p-6 rounded-2xl border border-purple-500/10">
-                <h3 className="text-xl font-semibold mb-4 text-gray-200">Market Distribution</h3>
-                <div className="h-[300px]">
+                <div className="h-[400px]">
                   <Bar 
                     options={{
                       ...chartOptions,
+                      maintainAspectRatio: false,
+                      aspectRatio: 1.5,
                       plugins: {
                         ...chartOptions.plugins,
                         title: { ...chartOptions.plugins.title, text: 'Regional Market Share' }

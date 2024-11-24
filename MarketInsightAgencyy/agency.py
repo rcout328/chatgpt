@@ -51,7 +51,7 @@ agents = [
 
 for agent in agents:
     agent.temperature = 0.7
-    agent.model = "gpt-4-1106-preview"
+    agent.model = "gpt-4o"
 
 # Create agency with communication flows
 agency = Agency(

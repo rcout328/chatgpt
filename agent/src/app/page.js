@@ -14,6 +14,25 @@ export default function Home() {
 
   useEffect(() => {
     setMounted(true);
+    
+    // Add storage event listener
+    const handleStorageChange = () => {
+      const storedInput = localStorage.getItem('businessInput');
+      if (storedInput) {
+        setUserInput(storedInput);
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  // Check for stored input on mount
+  useEffect(() => {
+    const storedInput = localStorage.getItem('businessInput');
+    if (storedInput) {
+      setUserInput(storedInput);
+    }
   }, []);
 
   const handleSubmit = async (e) => {
@@ -29,6 +48,12 @@ export default function Home() {
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleCloseChatbot = () => {
+    setShowChatbot(false);
+    // Trigger storage event to update input
+    window.dispatchEvent(new Event('storage'));
   };
 
   if (!mounted) return null;
@@ -49,7 +74,10 @@ export default function Home() {
         {/* Main Content */}
         <div className="flex justify-center items-center">
           {showChatbot ? (
-            <StartupChatbot onClose={() => setShowChatbot(false)} />
+            <StartupChatbot 
+              onClose={handleCloseChatbot} 
+              setUserInput={setUserInput}
+            />
           ) : (
             /* Input Form with Glass Effect */
             <div className="w-full max-w-2xl bg-gradient-to-b from-purple-500/10 to-transparent p-[1px] rounded-2xl backdrop-blur-xl">
