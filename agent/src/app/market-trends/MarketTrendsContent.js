@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { socket, safeEmit, checkConnection } from '@/config/socket';
 import { useStoredInput } from '@/hooks/useStoredInput';
 import { Line, Bar } from 'react-chartjs-2';
+import { callGroqApi } from '@/utils/groqApi';
+import ChatDialog from '@/components/ChatDialog';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -15,7 +16,6 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js';
-import ChatDialog from '@/components/ChatDialog';
 
 // Register ChartJS components
 ChartJS.register(
@@ -33,7 +33,6 @@ export default function MarketTrendsContent() {
   const [userInput, setUserInput] = useStoredInput();
   const [marketAnalysis, setMarketAnalysis] = useState('');
   const [marketData, setMarketData] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
@@ -141,7 +140,7 @@ export default function MarketTrendsContent() {
     }
   };
 
-  // Load stored analysis and data
+  // Load stored analysis on mount and when userInput changes
   useEffect(() => {
     setMounted(true);
     const storedAnalysis = localStorage.getItem(`marketAnalysis_${userInput}`);
@@ -153,61 +152,13 @@ export default function MarketTrendsContent() {
     } else {
       setMarketAnalysis('');
       setMarketData(null);
-      if (isConnected && mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
+      // Auto-submit only if input is different from last analyzed
+      if (mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
         handleSubmit(new Event('submit'));
         setLastAnalyzedInput(userInput);
       }
     }
-  }, [userInput, isConnected, mounted]);
-
-  // Socket connection handling
-  useEffect(() => {
-    const handleConnect = () => {
-      console.log('Connected to server');
-      setIsConnected(true);
-      setError(null);
-    };
-
-    const handleDisconnect = () => {
-      console.log('Disconnected from server');
-      setIsConnected(false);
-    };
-
-    const handleReceiveMessage = (data) => {
-      console.log('Received message:', data);
-      setIsLoading(false);
-      
-      if (data.type === 'error') {
-        setError(data.content);
-        return;
-      }
-
-      if (data.analysisType === 'market') {
-        const analysisResult = data.content;
-        setMarketAnalysis(analysisResult);
-        setMarketData(parseMarketData(analysisResult));
-        localStorage.setItem(`marketAnalysis_${userInput}`, analysisResult);
-        setLastAnalyzedInput(userInput);
-      }
-    };
-
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
-    socket.on('receive_message', handleReceiveMessage);
-    socket.on('connect_error', (error) => {
-      console.error('Connection error:', error);
-      setError('Connection error. Retrying...');
-    });
-
-    setIsConnected(checkConnection());
-
-    return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
-      socket.off('receive_message', handleReceiveMessage);
-      socket.off('connect_error');
-    };
-  }, [userInput]);
+  }, [userInput, mounted]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -217,44 +168,45 @@ export default function MarketTrendsContent() {
     const storedAnalysis = localStorage.getItem(`marketAnalysis_${userInput}`);
     if (storedAnalysis && userInput === lastAnalyzedInput) {
       setMarketAnalysis(storedAnalysis);
-      setMarketData(parseMarketData(storedAnalysis)); // Parse data immediately
-      return; // Don't proceed with API call if we have stored results for this input
+      setMarketData(parseMarketData(storedAnalysis));
+      return;
     }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      await safeEmit('send_message', {
-        message: `Perform a detailed market analysis for this startup/business: ${userInput}. 
-        Please analyze:
+      const messages = [{
+        role: "user",
+        content: `Analyze market trends for this business: ${userInput}. 
+        Please provide:
         1. Market Trends
            - Current market dynamics
-           - Emerging trends
-           - Consumer behavior patterns
+           - Growth rates with specific percentages
+           - Market segments with share percentages
            - Industry-specific developments
         2. Market Size
-           - Total addressable market
+           - Total addressable market size
            - Market growth rate
-           - Market segments
+           - Market segments distribution
            - Geographic distribution
         3. Target Audience
            - Customer demographics
            - Customer needs and preferences
            - Market penetration opportunities
-           - Customer acquisition channels
-        4. Competitive Landscape
-           - Key competitors
-           - Market positioning
-           - Competitive advantages
-           - Market share distribution`,
-        agent: 'MarketInsightCEO',
-        analysisType: 'market'
-      });
+           - Customer acquisition channels`
+      }];
 
+      const analysisResult = await callGroqApi(messages);
+      setMarketAnalysis(analysisResult);
+      const parsedData = parseMarketData(analysisResult);
+      setMarketData(parsedData);
+      localStorage.setItem(`marketAnalysis_${userInput}`, analysisResult);
+      setLastAnalyzedInput(userInput);
     } catch (error) {
-      console.error('Error sending message:', error);
-      setError('Failed to send analysis request. Please try again.');
+      console.error('Error:', error);
+      setError('Failed to get analysis. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -271,12 +223,6 @@ export default function MarketTrendsContent() {
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             Market Trends Analysis
           </h1>
-          <div className="text-sm text-gray-500">
-            {isConnected ? 
-              <span className="text-green-500">●</span> : 
-              <span className="text-red-500">●</span>
-            } {isConnected ? 'Connected' : 'Disconnected'}
-          </div>
           <div className="absolute right-0 top-0">
             <ChatDialog currentPage="marketTrends" />
           </div>
@@ -310,14 +256,20 @@ export default function MarketTrendsContent() {
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder="Enter your business details for market analysis..."
                 className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 h-32 resize-none text-black"
-                disabled={!isConnected || isLoading}
+                disabled={isLoading}
               />
+            </div>
+            <div className="mb-4 text-sm text-gray-600 bg-blue-50 p-4 rounded-lg border border-blue-200">
+              <p className="flex items-center">
+                <span className="mr-2">💡</span>
+                <strong>Pro Tip:</strong> After describing your business idea, you can chat with our AI assistant for a more detailed discussion. When you're done sharing all the details, simply type "end" in the chat to get a comprehensive summary.
+              </p>
             </div>
             <button
               type="submit"
-              disabled={!isConnected || isLoading}
+              disabled={isLoading}
               className={`w-full p-4 rounded-lg font-medium transition-colors ${
-                isConnected && !isLoading
+                !isLoading
                   ? 'bg-blue-500 hover:bg-blue-600 text-white'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
