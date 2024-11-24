@@ -41,7 +41,7 @@ class MarketInsightCEO(Agent):
                 messages=messages,
                 model="llama-3.1-70b-versatile",
                 temperature=self.temperature,
-                max_tokens=self.max_prompt_tokens,
+                max_tokens=self.max_promptsolve this _tokens,
                 stream=False
             )
 

@@ -35,12 +35,12 @@ ChartJS.register(
 export default function CompetitorTrackingContent() {
   const [userInput, setUserInput] = useStoredInput();
   const [competitorAnalysis, setCompetitorAnalysis] = useState('');
+  const [competitorData, setCompetitorData] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [lastAnalyzedInput, setLastAnalyzedInput] = useState('');
-  const [competitorData, setCompetitorData] = useState(null);
 
   // Load stored analysis on mount and when userInput changes
   useEffect(() => {
@@ -49,16 +49,18 @@ export default function CompetitorTrackingContent() {
     
     if (storedAnalysis) {
       setCompetitorAnalysis(storedAnalysis);
+      setCompetitorData(parseCompetitorData(storedAnalysis)); // Parse data immediately
       setLastAnalyzedInput(userInput); // Track this input as analyzed
     } else {
       setCompetitorAnalysis('');
+      setCompetitorData(null);
       // Auto-submit only if input is different from last analyzed
       if (isConnected && mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
         handleSubmit(new Event('submit'));
         setLastAnalyzedInput(userInput); // Update last analyzed input
       }
     }
-  }, [userInput, isConnected, mounted]); // Dependencies include connection status
+  }, [userInput, isConnected, mounted]);
 
   useEffect(() => {
     const handleConnect = () => {
@@ -117,6 +119,7 @@ export default function CompetitorTrackingContent() {
     const storedAnalysis = localStorage.getItem(`competitorAnalysis_${userInput}`);
     if (storedAnalysis && userInput === lastAnalyzedInput) {
       setCompetitorAnalysis(storedAnalysis);
+      setCompetitorData(parseCompetitorData(storedAnalysis)); // Parse data immediately
       return; // Don't proceed with API call if we have stored results for this input
     }
 
@@ -163,10 +166,6 @@ export default function CompetitorTrackingContent() {
     try {
       // Extract competitor names and market share percentages
       const competitors = content.match(/(\w+(?:\s+\w+)*)\s*(?:has|with|at)\s*(\d+(?:\.\d+)?)\s*%/gi);
-      const strengthsMatches = content.match(/strengths?[:\s-]+([^.!?\n]+)/gi);
-      const weaknessesMatches = content.match(/weaknesses?[:\s-]+([^.!?\n]+)/gi);
-
-      // Market Share Data
       const marketShareData = {
         labels: [],
         datasets: [{
@@ -198,28 +197,7 @@ export default function CompetitorTrackingContent() {
         });
       }
 
-      // Competitive Analysis Radar Data
-      const radarData = {
-        labels: ['Market Share', 'Brand Strength', 'Innovation', 'Customer Service', 'Price Competitiveness'],
-        datasets: competitors ? competitors.map((comp, index) => ({
-          label: marketShareData.labels[index],
-          data: [
-            marketShareData.datasets[0].data[index],
-            Math.random() * 100,
-            Math.random() * 100,
-            Math.random() * 100,
-            Math.random() * 100,
-          ],
-          backgroundColor: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.2)`,
-          borderColor: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 1)`,
-          borderWidth: 1,
-        })) : [],
-      };
-
-      return {
-        marketShare: marketShareData,
-        competitiveAnalysis: radarData,
-      };
+      return marketShareData;
     } catch (error) {
       console.error('Error parsing competitor data:', error);
       return null;
@@ -345,14 +323,14 @@ export default function CompetitorTrackingContent() {
             {/* Market Share Chart */}
             <div className="bg-white rounded-xl shadow-xl p-6">
               <div className="h-[400px]">
-                <Bar options={barOptions} data={competitorData.marketShare} />
+                <Bar options={barOptions} data={competitorData} />
               </div>
             </div>
 
             {/* Competitive Analysis Radar */}
             <div className="bg-white rounded-xl shadow-xl p-6">
               <div className="h-[400px]">
-                <Radar options={radarOptions} data={competitorData.competitiveAnalysis} />
+                <Radar options={radarOptions} data={competitorData} />
               </div>
             </div>
           </div>

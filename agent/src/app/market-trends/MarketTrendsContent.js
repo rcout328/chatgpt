@@ -216,6 +216,7 @@ export default function MarketTrendsContent() {
     const storedAnalysis = localStorage.getItem(`marketAnalysis_${userInput}`);
     if (storedAnalysis && userInput === lastAnalyzedInput) {
       setMarketAnalysis(storedAnalysis);
+      setMarketData(parseMarketData(storedAnalysis)); // Parse data immediately
       return; // Don't proceed with API call if we have stored results for this input
     }
 

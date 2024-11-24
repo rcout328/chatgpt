@@ -22,8 +22,65 @@ export default function Dashboard() {
     setIsSubmitting(true);
 
     try {
-      // Store input and redirect to market trends
+      // Store input in local storage
       localStorage.setItem('businessInput', userInput);
+
+      // Emit messages for both analyses
+      await safeEmit('send_message', {
+        message: `Perform a detailed market analysis for this startup/business: ${userInput}. 
+        Please analyze:
+        1. Market Trends
+           - Current market dynamics
+           - Emerging trends
+           - Consumer behavior patterns
+           - Industry-specific developments
+        2. Market Size
+           - Total addressable market
+           - Market growth rate
+           - Market segments
+           - Geographic distribution
+        3. Target Audience
+           - Customer demographics
+           - Customer needs and preferences
+           - Market penetration opportunities
+           - Customer acquisition channels
+        4. Competitive Landscape
+           - Key competitors
+           - Market positioning
+           - Competitive advantages
+           - Market share distribution`,
+        agent: 'MarketInsightCEO',
+        analysisType: 'market'
+      });
+
+      await safeEmit('send_message', {
+        message: `Perform a comprehensive competitor analysis for this business: ${userInput}. 
+        Please analyze:
+        1. Direct Competitors
+           - Key market players
+           - Market share analysis
+           - Competitive positioning
+           - Core offerings
+        2. Competitor Strengths
+           - Unique selling propositions
+           - Market advantages
+           - Resource capabilities
+           - Brand reputation
+        3. Competitor Weaknesses
+           - Service gaps
+           - Market limitations
+           - Operational challenges
+           - Customer pain points
+        4. Strategic Analysis
+           - Pricing strategies
+           - Marketing approaches
+           - Distribution channels
+           - Growth tactics`,
+        agent: 'MarketInsightCEO',
+        analysisType: 'competitor'
+      });
+
+      // Redirect to market trends page
       router.push('/market-trends');
     } catch (error) {
       console.error('Error:', error);
@@ -50,97 +107,29 @@ export default function Dashboard() {
         </header>
 
         {/* Input Form */}
-        <div className="mb-12">
-          <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-            <div className="mb-6">
-              <label htmlFor="businessInput" className="block text-lg font-medium text-gray-700 mb-2">
+        <form onSubmit={handleSubmit} className="mb-8">
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Business Details
               </label>
               <textarea
-                id="businessInput"
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
-                placeholder="Describe your business or startup in detail. Include information about your products/services, target market, and business model..."
-                className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 h-48 resize-none text-black"
+                placeholder="Describe your business, products/services, target market, and business model..."
+                className="w-full p-3 border rounded-lg h-32 resize-none focus:ring-2 focus:ring-blue-500"
                 disabled={isSubmitting}
               />
             </div>
             <button
               type="submit"
               disabled={isSubmitting || !userInput.trim()}
-              className={`w-full p-4 rounded-lg font-medium transition-colors ${
-                !isSubmitting && userInput.trim()
-                  ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+              className="w-full p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg"
             >
               {isSubmitting ? 'Starting Analysis...' : 'Start Analysis'}
             </button>
-          </form>
-        </div>
-
-        {/* Analysis Tools Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Market Analysis Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-semibold mb-2 flex items-center">
-              <span className="mr-2">📊</span> Market Analysis
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Analyze market trends, size, and growth potential for your business.
-            </p>
           </div>
-
-          {/* Competitor Analysis Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-semibold mb-2 flex items-center">
-              <span className="mr-2">🎯</span> Competitor Analysis
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Understand your competition and market positioning.
-            </p>
-          </div>
-
-          {/* SWOT Analysis Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-semibold mb-2 flex items-center">
-              <span className="mr-2">⚖️</span> SWOT Analysis
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Identify strengths, weaknesses, opportunities, and threats.
-            </p>
-          </div>
-
-          {/* Feature Priority Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-semibold mb-2 flex items-center">
-              <span className="mr-2">⭐</span> Feature Priority
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Prioritize features and development roadmap.
-            </p>
-          </div>
-
-          {/* Compliance Check Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-semibold mb-2 flex items-center">
-              <span className="mr-2">📋</span> Compliance Check
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Ensure regulatory compliance and risk assessment.
-            </p>
-          </div>
-
-          {/* Impact Assessment Card */}
-          <div className="bg-white rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-semibold mb-2 flex items-center">
-              <span className="mr-2">⚡</span> Impact Assessment
-            </h3>
-            <p className="text-gray-600 mb-4">
-              Evaluate business impact and sustainability.
-            </p>
-          </div>
-        </div>
+        </form>
       </div>
     </main>
   );
