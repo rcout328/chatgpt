@@ -5,6 +5,7 @@ import { useStoredInput } from '@/hooks/useStoredInput';
 import { callGroqApi } from '@/utils/groqApi';
 import ChatDialog from '@/components/ChatDialog';
 import jsPDF from 'jspdf';
+import { useRouter } from 'next/navigation';
 
 export default function JourneyMappingContent() {
   const [userInput, setUserInput] = useStoredInput();
@@ -15,6 +16,7 @@ export default function JourneyMappingContent() {
   const [lastAnalyzedInput, setLastAnalyzedInput] = useState('');
 
   const analysisRef = useRef(null);
+  const router = useRouter();
 
   const exportToPDF = async () => {
     try {
@@ -126,83 +128,110 @@ export default function JourneyMappingContent() {
     }
   };
 
+  // Add navigation handlers
+  const handleIcpCreation = () => {
+    router.push('/icp-creation');
+  };
+
   if (!mounted) return null;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">
+    <div className="min-h-screen bg-[#131314] text-white p-6">
       <div className="max-w-7xl mx-auto">
-        <header className="text-center mb-8 relative">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Customer Journey Mapping
-          </h1>
-          <div className="absolute right-0 top-0 flex space-x-2">
+        {/* Header Section */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              Customer Journey Mapping
+            </h1>
+            <p className="text-gray-400 mt-2">Map and analyze customer touchpoints</p>
+          </div>
+          <div className="flex items-center space-x-4">
             {journeyMapping && (
               <button
                 onClick={exportToPDF}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+                className="bg-[#1D1D1F] hover:bg-[#2D2D2F] text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all"
               >
                 <span>📥</span>
                 <span>Export PDF</span>
               </button>
             )}
-            <ChatDialog currentPage="journeyMapping" />
           </div>
-        </header>
+        </div>
 
-        {/* Input Form */}
-        <div className="mb-8">
-          <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-            <div className="mb-4">
+        {/* Navigation Tabs */}
+        <div className="bg-[#1D1D1F] p-1 rounded-xl mb-8 inline-flex">
+          <button 
+            onClick={handleIcpCreation}
+            className="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-purple-600/50 transition-all duration-200"
+          >
+            ICP Creation
+          </button>
+          <button 
+            className="px-4 py-2 rounded-lg bg-purple-600 text-white"
+          >
+            Journey Mapping
+          </button>
+        </div>
+
+        {/* Main Content */}
+        <div className="bg-[#1D1D1F] rounded-2xl border border-purple-500/10 p-6">
+          <h2 className="text-2xl font-semibold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
+            Journey Analysis
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
               <textarea
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder="Enter your business details for journey mapping..."
-                className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 h-32 resize-none text-black"
+                className="w-full h-32 px-4 py-3 bg-[#131314] text-gray-200 rounded-xl border border-purple-500/20 
+                         placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none"
                 disabled={isLoading}
               />
             </div>
             <button
               type="submit"
               disabled={isLoading || !userInput.trim()}
-              className={`w-full p-4 rounded-lg font-medium transition-colors ${
-                !isLoading && userInput.trim()
-                  ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+              className={`w-full py-4 px-6 rounded-xl font-medium transition-all duration-200 
+                        ${!isLoading && userInput.trim()
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/25'
+                  : 'bg-gray-600 text-gray-300 cursor-not-allowed'}`}
             >
-              {isLoading ? 'Analyzing...' : 'Create Journey Map'}
+              {isLoading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                  <span>Analyzing...</span>
+                </div>
+              ) : (
+                'Create Journey Map'
+              )}
             </button>
           </form>
-        </div>
 
-        {/* Analysis Results */}
-        <div className="grid md:grid-cols-1 gap-6">
-          {/* Journey Mapping Box */}
-          <div ref={analysisRef} className="bg-white rounded-xl shadow-xl p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-700 flex items-center">
-              <span className="mr-2">🗺️</span> Journey Mapping
-            </h2>
-            <div className="bg-gray-50 rounded-lg p-4 min-h-[300px]">
-              {error ? (
-                <div className="text-red-500">
-                  {error}
-                  <p className="text-sm mt-2">Please try refreshing the page or contact support if the problem persists.</p>
-                </div>
-              ) : isLoading ? (
-                <div className="flex justify-center items-center h-full">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-                </div>
-              ) : journeyMapping ? (
-                <div className="prose text-black whitespace-pre-wrap">{journeyMapping}</div>
-              ) : (
-                <div className="text-gray-500 italic">
-                  Journey mapping results will appear here...
-                </div>
-              )}
-            </div>
+          {/* Analysis Results */}
+          <div ref={analysisRef} className="mt-6">
+            {error ? (
+              <div className="text-red-500">
+                {error}
+                <p className="text-sm mt-2">Please try refreshing the page or contact support if the problem persists.</p>
+              </div>
+            ) : isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+              </div>
+            ) : journeyMapping ? (
+              <div className="prose text-gray-300 max-w-none">
+                <div className="whitespace-pre-wrap">{journeyMapping}</div>
+              </div>
+            ) : (
+              <div className="text-gray-500 italic">
+                Journey mapping results will appear here...
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 } 

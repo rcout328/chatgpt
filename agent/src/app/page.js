@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useStoredInput } from '@/hooks/useStoredInput';
 import StartupChatbot from '@/components/StartupChatbot';
 
-export default function Dashboard() {
+export default function Home() {
   const [userInput, setUserInput] = useStoredInput();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -15,11 +15,6 @@ export default function Dashboard() {
   useEffect(() => {
     setMounted(true);
   }, []);
-
-  const handleChatbotComplete = (description) => {
-    setUserInput(description);
-    setShowChatbot(false);
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,56 +34,102 @@ export default function Dashboard() {
   if (!mounted) return null;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">
+    <div className="min-h-screen bg-[#131314] text-white p-6">
       <div className="max-w-7xl mx-auto">
-        <header className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-800 mb-4">
-            Business Analysis Dashboard
+        {/* Hero Section */}
+        <div className="mb-12 text-center">
+          <h1 className="text-6xl font-bold mb-6 bg-gradient-to-r from-purple-400 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+            Market Insight Analysis
           </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Describe your business or chat with our AI to create a detailed description.
+          <p className="text-gray-400 text-xl max-w-2xl mx-auto leading-relaxed">
+            Unlock powerful market insights with our AI-driven analysis platform
           </p>
-        </header>
+        </div>
 
-        {showChatbot ? (
-          <StartupChatbot onComplete={handleChatbotComplete} />
-        ) : (
-          <div className="mb-8">
-            <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Business Details
-                  </label>
-                  <textarea
-                    value={userInput}
-                    onChange={(e) => setUserInput(e.target.value)}
-                    placeholder="Describe your business, products/services, target market, and business model..."
-                    className="w-full p-3 border rounded-lg h-32 resize-none focus:ring-2 focus:ring-blue-500"
-                    disabled={isSubmitting}
-                  />
-                </div>
-                <div className="flex space-x-4">
+        {/* Main Content */}
+        <div className="flex justify-center items-center">
+          {showChatbot ? (
+            <StartupChatbot onClose={() => setShowChatbot(false)} />
+          ) : (
+            /* Input Form with Glass Effect */
+            <div className="w-full max-w-2xl bg-gradient-to-b from-purple-500/10 to-transparent p-[1px] rounded-2xl backdrop-blur-xl">
+              <div className="bg-[#1D1D1F]/90 p-8 rounded-2xl backdrop-blur-xl">
+                <h2 className="text-2xl font-semibold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
+                  Begin Your Analysis Journey
+                </h2>
+                <div className="flex flex-col space-y-4">
                   <button
-                    type="button"
                     onClick={() => setShowChatbot(true)}
-                    className="flex-1 p-4 bg-gray-500 hover:bg-gray-600 text-white rounded-lg"
+                    className="w-full py-4 px-6 rounded-xl font-medium transition-all duration-200 
+                             bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 
+                             hover:to-indigo-700 text-white shadow-lg shadow-purple-500/25 
+                             flex items-center justify-center space-x-2"
                   >
-                    Chat with AI
+                    <span>🤖</span>
+                    <span>Chat with AI Assistant</span>
                   </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting || !userInput.trim()}
-                    className="flex-1 p-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg disabled:bg-gray-300 disabled:cursor-not-allowed"
-                  >
-                    {isSubmitting ? 'Starting Analysis...' : 'Start Analysis'}
-                  </button>
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 rounded-xl blur"></div>
+                    <div className="relative">
+                      <form onSubmit={handleSubmit} className="space-y-6">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-300 mb-2">
+                            Or describe your business manually
+                          </label>
+                          <textarea
+                            value={userInput}
+                            onChange={(e) => setUserInput(e.target.value)}
+                            placeholder="Describe your business, products/services, target market, and business model..."
+                            className="w-full h-40 px-4 py-3 bg-[#131314] text-gray-200 rounded-xl border border-purple-500/20 
+                                     placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none"
+                            disabled={isSubmitting}
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={isSubmitting || !userInput.trim()}
+                          className={`w-full py-4 px-6 rounded-xl font-medium transition-all duration-200 
+                                    ${!isSubmitting && userInput.trim()
+                              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/25'
+                              : 'bg-gray-600 text-gray-300 cursor-not-allowed'}`}
+                        >
+                          {isSubmitting ? (
+                            <div className="flex items-center justify-center space-x-2">
+                              <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                              <span>Processing...</span>
+                            </div>
+                          ) : (
+                            'Start Analysis'
+                          )}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Quick Tips */}
+                <div className="mt-8 pt-6 border-t border-purple-500/10">
+                  <p className="text-sm text-purple-400 mb-3">Pro Tips:</p>
+                  <ul className="text-sm text-gray-400 space-y-2">
+                    <li className="flex items-center space-x-2">
+                      <span className="text-purple-500">•</span>
+                      <span>Chat with AI for guided analysis</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <span className="text-purple-500">•</span>
+                      <span>Be specific about your target market</span>
+                    </li>
+                    <li className="flex items-center space-x-2">
+                      <span className="text-purple-500">•</span>
+                      <span>Describe your business model clearly</span>
+                    </li>
+                  </ul>
                 </div>
               </div>
-            </form>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
-    </main>
+    </div>
   );
 }

@@ -1,21 +1,21 @@
-import './globals.css';
-import Providers from '../components/Providers';
-import ClientLayout from '../components/ClientLayout';
+"use client";
 
-export const metadata = {
-  title: 'Market Insight Analysis',
-  description: 'AI-powered market insight and analysis',
-};
+import { Inter } from 'next/font/google';
+import './globals.css';
+import Sidebar from '@/components/Sidebar';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body>
-        <Providers>
-          <ClientLayout>
+      <body className={`${inter.className} bg-[#131314]`}>
+        <div className="flex">
+          <Sidebar />
+          <main className="flex-1 min-h-screen bg-[#131314] p-6">
             {children}
-          </ClientLayout>
-        </Providers>
+          </main>
+        </div>
       </body>
     </html>
   );

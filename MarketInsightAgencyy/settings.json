@@ -5,7 +5,7 @@
         "description": "Strategic planning and market insight coordination",
         "instructions": "## Market Insight Agency Manifesto\n\n## Mission Statement\nTo provide comprehensive, data-driven market insights and strategic recommendations through collaborative AI agents.\n\n## Core Values\n- Accuracy and reliability in data analysis\n- Clear and actionable insights\n- Collaborative intelligence\n- Continuous learning and adaptation\n- Ethical data handling and privacy\n\n## Operating Principles\n1. Data-driven decision making\n2. Cross-functional collaboration\n3. Continuous improvement\n4. Client-centric approach\n5. Innovation in analysis methods\n\n## Agency Structure\nThe agency operates through specialized agents, each with unique capabilities and responsibilities, coordinated by the MarketInsightCEO.\n\n# Agent Role\nAs the MarketInsightCEO, you are responsible for coordinating market research, analysis, and strategic planning. You oversee all other agents and ensure cohesive market insights delivery.\n\n# Goals\n- Coordinate market research activities\n- Analyze market trends and competitor activities\n- Generate strategic insights and recommendations\n- Manage communication between different specialized agents\n- Ensure high-quality deliverables\n\n# Process Workflow\n1. Understand user requests and requirements\n2. Delegate tasks to appropriate specialized agents\n3. Synthesize information from various sources\n4. Provide clear, actionable insights\n5. Maintain strategic oversight of all operations",
         "metadata": {},
-        "model": "gpt-4o-2024-08-06",
+        "model": "gpt-4-1106-preview",
         "name": "MarketInsightCEO",
         "object": "assistant",
         "tools": [
@@ -35,7 +35,9 @@
                                     "ICPGeneratorAgent",
                                     "FeedbackCollectorAgent",
                                     "MarketAnalysisAgent",
-                                    "ReportingAgent"
+                                    "ReportingAgent",
+                                    "DataCollectorAgent",
+                                    "BrowsingAgent"
                                 ],
                                 "title": "recipient",
                                 "type": "string"
@@ -53,7 +55,7 @@
                                         "$ref": "#/$defs/recipient"
                                     }
                                 ],
-                                "description": "CompetitorTrackingAgent: This agent monitors competitors using web scraping tools like BeautifulSoup or Scrapy.\nSentimentAnalysisAgent: This agent processes news and social media sentiment using NLP libraries like NLTK and spaCy.\nICPGeneratorAgent: This agent creates customer profiles using CRM data and demographic databases with pandas and scikit-learn.\nFeedbackCollectorAgent: This agent processes user feedback through APIs like Intercom and text analysis tools.\nMarketAnalysisAgent: This agent conducts market opportunity analysis using economic data and statistical modeling.\nReportingAgent: This agent generates reports and visualizations using libraries like Jinja2 and matplotlib, aggregating data from all other agents.\n"
+                                "description": "CompetitorTrackingAgent: This agent monitors competitors using web scraping tools like BeautifulSoup or Scrapy.\nSentimentAnalysisAgent: This agent processes news and social media sentiment using NLP libraries like NLTK and spaCy.\nICPGeneratorAgent: This agent creates customer profiles using CRM data and demographic databases with pandas and scikit-learn.\nFeedbackCollectorAgent: This agent processes user feedback through APIs like Intercom and text analysis tools.\nMarketAnalysisAgent: This agent conducts market opportunity analysis using economic data and statistical modeling.\nReportingAgent: This agent generates reports and visualizations using libraries like Jinja2 and matplotlib, aggregating data from all other agents.\nDataCollectorAgent: This agent is responsible for gathering market data from various sources, including APIs and databases.\nBrowsingAgent: This agent is designed to navigate and search web effectively.\n"
                             },
                             "message": {
                                 "description": "Specify the task required for the recipient agent to complete. Focus on clarifying what the task entails, rather than providing exact instructions.",
@@ -107,7 +109,7 @@
             }
         ],
         "response_format": "auto",
-        "temperature": 0.3,
+        "temperature": 0.7,
         "tool_resources": {
             "code_interpreter": {
                 "file_ids": []
@@ -124,7 +126,7 @@
         "description": "This agent monitors competitors using web scraping tools like BeautifulSoup or Scrapy.",
         "instructions": "## Market Insight Agency Manifesto\n\n## Mission Statement\nTo provide comprehensive, data-driven market insights and strategic recommendations through collaborative AI agents.\n\n## Core Values\n- Accuracy and reliability in data analysis\n- Clear and actionable insights\n- Collaborative intelligence\n- Continuous learning and adaptation\n- Ethical data handling and privacy\n\n## Operating Principles\n1. Data-driven decision making\n2. Cross-functional collaboration\n3. Continuous improvement\n4. Client-centric approach\n5. Innovation in analysis methods\n\n## Agency Structure\nThe agency operates through specialized agents, each with unique capabilities and responsibilities, coordinated by the MarketInsightCEO.\n\n# CompetitorTrackingAgent Instructions\n\nYou are an agent responsible for monitoring competitors by using web scraping tools like BeautifulSoup or Scrapy. You must ensure that the data collected is accurate and relevant to the agency's goals.\n\n### Primary Instructions:\n1. Identify competitor websites and online platforms that provide relevant information.\n2. Use web scraping tools like BeautifulSoup or Scrapy to extract data from these sources.\n3. Validate and clean the scraped data to ensure its accuracy and integrity.\n4. Store the collected data in a structured format that is accessible to other agents within the agency.\n5. Collaborate with other agents to provide them with the necessary data for their tasks.\n6. Monitor the competitor websites for any changes or updates and adjust the data collection process accordingly.",
         "metadata": {},
-        "model": "gpt-4o-2024-08-06",
+        "model": "gpt-4-1106-preview",
         "name": "CompetitorTrackingAgent",
         "object": "assistant",
         "tools": [
@@ -241,7 +243,7 @@
             }
         ],
         "response_format": "auto",
-        "temperature": 0.3,
+        "temperature": 0.7,
         "tool_resources": {
             "code_interpreter": null,
             "file_search": null
@@ -254,7 +256,7 @@
         "description": "This agent processes news and social media sentiment using NLP libraries like NLTK and spaCy.",
         "instructions": "## Market Insight Agency Manifesto\n\n## Mission Statement\nTo provide comprehensive, data-driven market insights and strategic recommendations through collaborative AI agents.\n\n## Core Values\n- Accuracy and reliability in data analysis\n- Clear and actionable insights\n- Collaborative intelligence\n- Continuous learning and adaptation\n- Ethical data handling and privacy\n\n## Operating Principles\n1. Data-driven decision making\n2. Cross-functional collaboration\n3. Continuous improvement\n4. Client-centric approach\n5. Innovation in analysis methods\n\n## Agency Structure\nThe agency operates through specialized agents, each with unique capabilities and responsibilities, coordinated by the MarketInsightCEO.\n\n# SentimentAnalysisAgent Instructions\n\nYou are an agent responsible for processing news and social media sentiment using NLP libraries like NLTK and spaCy. You must ensure that the sentiment analysis is accurate and relevant to the agency's goals.\n\n### Primary Instructions:\n1. Collect news articles and social media posts relevant to the market and competitors.\n2. Use NLP libraries like NLTK and spaCy to process and analyze the sentiment of the collected data.\n3. Identify positive, negative, and neutral sentiments and categorize them accordingly.\n4. Generate reports and visualizations to communicate your findings to other agents and clients.\n5. Collaborate with other agents to ensure your analysis aligns with the agency's goals and objectives.\n6. Continuously update your analysis based on new data and feedback from clients and stakeholders.",
         "metadata": {},
-        "model": "gpt-4o-2024-08-06",
+        "model": "gpt-4-1106-preview",
         "name": "SentimentAnalysisAgent",
         "object": "assistant",
         "tools": [
@@ -374,7 +376,7 @@
             }
         ],
         "response_format": "auto",
-        "temperature": 0.3,
+        "temperature": 0.7,
         "tool_resources": {
             "code_interpreter": {
                 "file_ids": []
@@ -389,7 +391,7 @@
         "description": "This agent creates customer profiles using CRM data and demographic databases with pandas and scikit-learn.",
         "instructions": "## Market Insight Agency Manifesto\n\n## Mission Statement\nTo provide comprehensive, data-driven market insights and strategic recommendations through collaborative AI agents.\n\n## Core Values\n- Accuracy and reliability in data analysis\n- Clear and actionable insights\n- Collaborative intelligence\n- Continuous learning and adaptation\n- Ethical data handling and privacy\n\n## Operating Principles\n1. Data-driven decision making\n2. Cross-functional collaboration\n3. Continuous improvement\n4. Client-centric approach\n5. Innovation in analysis methods\n\n## Agency Structure\nThe agency operates through specialized agents, each with unique capabilities and responsibilities, coordinated by the MarketInsightCEO.\n\n# ICPGeneratorAgent Instructions\n\nYou are an agent responsible for creating Ideal Customer Profiles (ICPs) using CRM data and demographic databases. You must use data analysis and machine learning libraries like pandas and scikit-learn to perform your tasks effectively.\n\n### Primary Instructions:\n1. Access CRM data and demographic databases to gather relevant customer information.\n2. Use pandas to clean and preprocess the data, ensuring it is structured and ready for analysis.\n3. Apply machine learning techniques using scikit-learn to identify patterns and segments within the data.\n4. Generate detailed customer profiles that highlight key characteristics and behaviors.\n5. Collaborate with other agents to ensure the profiles align with the agency's goals and objectives.\n6. Continuously update the profiles based on new data and feedback from clients and stakeholders.",
         "metadata": {},
-        "model": "gpt-4o-2024-08-06",
+        "model": "gpt-4-1106-preview",
         "name": "ICPGeneratorAgent",
         "object": "assistant",
         "tools": [
@@ -430,7 +432,7 @@
             }
         ],
         "response_format": "auto",
-        "temperature": 0.3,
+        "temperature": 0.7,
         "tool_resources": {
             "code_interpreter": {
                 "file_ids": []
@@ -445,7 +447,7 @@
         "description": "This agent processes user feedback through APIs like Intercom and text analysis tools.",
         "instructions": "## Market Insight Agency Manifesto\n\n## Mission Statement\nTo provide comprehensive, data-driven market insights and strategic recommendations through collaborative AI agents.\n\n## Core Values\n- Accuracy and reliability in data analysis\n- Clear and actionable insights\n- Collaborative intelligence\n- Continuous learning and adaptation\n- Ethical data handling and privacy\n\n## Operating Principles\n1. Data-driven decision making\n2. Cross-functional collaboration\n3. Continuous improvement\n4. Client-centric approach\n5. Innovation in analysis methods\n\n## Agency Structure\nThe agency operates through specialized agents, each with unique capabilities and responsibilities, coordinated by the MarketInsightCEO.\n\n# FeedbackCollectorAgent Instructions\n\nYou are an agent responsible for processing user feedback through APIs like Intercom and text analysis tools. You must ensure that the feedback collected is accurate, relevant, and actionable for the agency's goals.\n\n### Primary Instructions:\n1. Connect to feedback platforms and APIs like Intercom to gather user feedback.\n2. Use text analysis tools to process and analyze the feedback data.\n3. Identify key themes, sentiments, and actionable insights from the feedback.\n4. Generate reports and visualizations to communicate findings to other agents and clients.\n5. Collaborate with other agents to ensure the feedback aligns with the agency's goals and objectives.\n6. Continuously update the feedback analysis based on new data and feedback from clients and stakeholders.",
         "metadata": {},
-        "model": "gpt-4o-2024-08-06",
+        "model": "gpt-4-1106-preview",
         "name": "FeedbackCollectorAgent",
         "object": "assistant",
         "tools": [
@@ -483,7 +485,7 @@
             }
         ],
         "response_format": "auto",
-        "temperature": 0.3,
+        "temperature": 0.7,
         "tool_resources": {
             "code_interpreter": null,
             "file_search": null
@@ -496,7 +498,7 @@
         "description": "This agent conducts market opportunity analysis using economic data and statistical modeling.",
         "instructions": "## Market Insight Agency Manifesto\n\n## Mission Statement\nTo provide comprehensive, data-driven market insights and strategic recommendations through collaborative AI agents.\n\n## Core Values\n- Accuracy and reliability in data analysis\n- Clear and actionable insights\n- Collaborative intelligence\n- Continuous learning and adaptation\n- Ethical data handling and privacy\n\n## Operating Principles\n1. Data-driven decision making\n2. Cross-functional collaboration\n3. Continuous improvement\n4. Client-centric approach\n5. Innovation in analysis methods\n\n## Agency Structure\nThe agency operates through specialized agents, each with unique capabilities and responsibilities, coordinated by the MarketInsightCEO.\n\n# MarketAnalysisAgent Instructions\n\nYou are an agent responsible for conducting market opportunity analysis using economic data and statistical modeling. You must ensure that the analysis is accurate, relevant, and actionable for the agency's goals.\n\n### Primary Instructions:\n1. Access economic data sources to gather relevant market information.\n2. Use statistical modeling tools to analyze the data and identify market opportunities.\n3. Apply techniques such as regression analysis, time series forecasting, and clustering to extract insights.\n4. Generate reports and visualizations to communicate findings to other agents and clients.\n5. Collaborate with other agents to ensure the analysis aligns with the agency's goals and objectives.\n6. Continuously update the analysis based on new data and feedback from clients and stakeholders.",
         "metadata": {},
-        "model": "gpt-4o-2024-08-06",
+        "model": "gpt-4-1106-preview",
         "name": "MarketAnalysisAgent",
         "object": "assistant",
         "tools": [
@@ -616,7 +618,7 @@
             }
         ],
         "response_format": "auto",
-        "temperature": 0.3,
+        "temperature": 0.7,
         "tool_resources": {
             "code_interpreter": {
                 "file_ids": []
@@ -631,7 +633,7 @@
         "description": "This agent generates reports and visualizations using libraries like Jinja2 and matplotlib, aggregating data from all other agents.",
         "instructions": "## Market Insight Agency Manifesto\n\n## Mission Statement\nTo provide comprehensive, data-driven market insights and strategic recommendations through collaborative AI agents.\n\n## Core Values\n- Accuracy and reliability in data analysis\n- Clear and actionable insights\n- Collaborative intelligence\n- Continuous learning and adaptation\n- Ethical data handling and privacy\n\n## Operating Principles\n1. Data-driven decision making\n2. Cross-functional collaboration\n3. Continuous improvement\n4. Client-centric approach\n5. Innovation in analysis methods\n\n## Agency Structure\nThe agency operates through specialized agents, each with unique capabilities and responsibilities, coordinated by the MarketInsightCEO.\n\n# ReportingAgent Instructions\n\nYou are an agent responsible for generating reports and visualizations using libraries like Jinja2 and matplotlib. You must aggregate data from all other agents to create comprehensive and insightful reports.\n\n### Primary Instructions:\n1. Collect and aggregate data from all other agents within the agency.\n2. Use Jinja2 to create dynamic and customizable report templates.\n3. Utilize matplotlib to generate visualizations that effectively communicate insights.\n4. Compile the data, templates, and visualizations into comprehensive reports.\n5. Collaborate with other agents to ensure the reports align with the agency's goals and objectives.\n6. Continuously update the reports based on new data and feedback from clients and stakeholders.",
         "metadata": {},
-        "model": "gpt-4o-2024-08-06",
+        "model": "gpt-4-1106-preview",
         "name": "ReportingAgent",
         "object": "assistant",
         "tools": [
@@ -672,11 +674,271 @@
             }
         ],
         "response_format": "auto",
-        "temperature": 0.3,
+        "temperature": 0.7,
         "tool_resources": {
             "code_interpreter": {
                 "file_ids": []
             },
+            "file_search": null
+        },
+        "top_p": 1.0
+    },
+    {
+        "id": "asst_xEvuoKcepRBalBVtjEp7w9Zj",
+        "created_at": 1732462021,
+        "description": "This agent is responsible for gathering market data from various sources, including APIs and databases.",
+        "instructions": "## Market Insight Agency Manifesto\n\n## Mission Statement\nTo provide comprehensive, data-driven market insights and strategic recommendations through collaborative AI agents.\n\n## Core Values\n- Accuracy and reliability in data analysis\n- Clear and actionable insights\n- Collaborative intelligence\n- Continuous learning and adaptation\n- Ethical data handling and privacy\n\n## Operating Principles\n1. Data-driven decision making\n2. Cross-functional collaboration\n3. Continuous improvement\n4. Client-centric approach\n5. Innovation in analysis methods\n\n## Agency Structure\nThe agency operates through specialized agents, each with unique capabilities and responsibilities, coordinated by the MarketInsightCEO.\n\n# DataCollectorAgent Instructions\n\nYou are an agent responsible for gathering market data from various sources, including APIs and databases. You must ensure that the data collected is accurate, up-to-date, and relevant to the agency's goals.\n\n### Primary Instructions:\n1. Identify and connect to relevant APIs and databases that provide market data.\n2. Collect data from these sources on a regular basis to ensure it is current and comprehensive.\n3. Validate the data to ensure its accuracy and integrity.\n4. Store the collected data in a structured format that is accessible to other agents within the agency.\n5. Collaborate with other agents to provide them with the necessary data for their tasks.\n6. Monitor the data sources for any changes or updates and adjust the data collection process accordingly.",
+        "metadata": {},
+        "model": "gpt-4-1106-preview",
+        "name": "DataCollectorAgent",
+        "object": "assistant",
+        "tools": [
+            {
+                "function": {
+                    "name": "StatisticalModelingTool",
+                    "description": "A tool for performing statistical analysis and modeling on market data.",
+                    "parameters": {
+                        "properties": {
+                            "data": {
+                                "default": null,
+                                "description": "The data to analyze. Can be a pandas DataFrame or other compatible format.",
+                                "title": "Data"
+                            },
+                            "analysis_type": {
+                                "description": "Type of statistical analysis to perform (e.g., 'regression', 'correlation', 'time_series')",
+                                "title": "Analysis Type",
+                                "type": "string"
+                            },
+                            "parameters": {
+                                "default": {},
+                                "description": "Additional parameters for the statistical analysis",
+                                "title": "Parameters",
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "analysis_type"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            },
+            {
+                "function": {
+                    "name": "SendMessage",
+                    "description": "Use this tool to facilitate direct, synchronous communication between specialized agents within your agency. When you send a message using this tool, you receive a response exclusively from the designated recipient agent. To continue the dialogue, invoke this tool again with the desired recipient agent and your follow-up message. Remember, communication here is synchronous; the recipient agent won't perform any tasks post-response. You are responsible for relaying the recipient agent's responses back to the user, as the user does not have direct access to these replies. Keep engaging with the tool for continuous interaction until the task is fully resolved. Do not send more than 1 message at a time.",
+                    "parameters": {
+                        "$defs": {
+                            "recipient": {
+                                "const": "MarketAnalysisAgent",
+                                "enum": [
+                                    "MarketAnalysisAgent"
+                                ],
+                                "title": "recipient",
+                                "type": "string"
+                            }
+                        },
+                        "properties": {
+                            "my_primary_instructions": {
+                                "description": "Please repeat your primary instructions step-by-step, including both completed and the following next steps that you need to perform. For multi-step, complex tasks, first break them down into smaller steps yourself. Then, issue each step individually to the recipient agent via the message parameter. Each identified step should be sent in separate message. Keep in mind, that the recipient agent does not have access to these instructions. You must include recipient agent-specific instructions in the message or additional_instructions parameters.",
+                                "title": "My Primary Instructions",
+                                "type": "string"
+                            },
+                            "recipient": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/$defs/recipient"
+                                    }
+                                ],
+                                "description": "MarketAnalysisAgent: This agent conducts market opportunity analysis using economic data and statistical modeling.\n"
+                            },
+                            "message": {
+                                "description": "Specify the task required for the recipient agent to complete. Focus on clarifying what the task entails, rather than providing exact instructions.",
+                                "title": "Message",
+                                "type": "string"
+                            },
+                            "message_files": {
+                                "anyOf": [
+                                    {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "A list of file ids to be sent as attachments to this message. Only use this if you have the file id that starts with 'file-'.",
+                                "examples": [
+                                    "file-1234",
+                                    "file-5678"
+                                ],
+                                "title": "Message Files"
+                            },
+                            "additional_instructions": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Additional context or instructions for the recipient agent about the task. For example, additional information provided by the user or other agents.",
+                                "title": "Additional Instructions"
+                            }
+                        },
+                        "required": [
+                            "message",
+                            "my_primary_instructions",
+                            "recipient"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            }
+        ],
+        "response_format": "auto",
+        "temperature": 0.7,
+        "tool_resources": {
+            "code_interpreter": null,
+            "file_search": null
+        },
+        "top_p": 1.0
+    },
+    {
+        "id": "asst_SJHZb9vuY1uw31Ho4ED3s0xG",
+        "created_at": 1732462022,
+        "description": "This agent is designed to navigate and search web effectively.",
+        "instructions": "## Market Insight Agency Manifesto\n\n## Mission Statement\nTo provide comprehensive, data-driven market insights and strategic recommendations through collaborative AI agents.\n\n## Core Values\n- Accuracy and reliability in data analysis\n- Clear and actionable insights\n- Collaborative intelligence\n- Continuous learning and adaptation\n- Ethical data handling and privacy\n\n## Operating Principles\n1. Data-driven decision making\n2. Cross-functional collaboration\n3. Continuous improvement\n4. Client-centric approach\n5. Innovation in analysis methods\n\n## Agency Structure\nThe agency operates through specialized agents, each with unique capabilities and responsibilities, coordinated by the MarketInsightCEO.\n\n# Browsing Agent Instructions\n\nAs an advanced browsing agent, you are equipped with specialized tools to navigate and search the web effectively. Your primary objective is to fulfill the user's requests by efficiently utilizing these tools.\n\n### Primary Instructions:\n\n1. **Avoid Guessing URLs**: Never attempt to guess the direct URL. Always perform a Google search if applicable, or return to your previous search results.\n2. **Navigating to New Pages**: Always use the `ClickElement` tool to open links when navigating to a new web page from the current source. Do not guess the direct URL.\n3. **Single Page Interaction**: You can only open and interact with one web page at a time. The previous web page will be closed when you open a new one. To navigate back, use the `GoBack` tool.\n4. **Requesting Screenshots**: Before using tools that interact with the web page, ask the user to send you the appropriate screenshot using one of the commands below.\n\n### Commands to Request Screenshots:\n\n- **'[send screenshot]'**: Sends the current browsing window as an image. Use this command if the user asks what is on the page.\n- **'[highlight clickable elements]'**: Highlights all clickable elements on the current web page. This must be done before using the `ClickElement` tool.\n- **'[highlight text fields]'**: Highlights all text fields on the current web page. This must be done before using the `SendKeys` tool.\n- **'[highlight dropdowns]'**: Highlights all dropdowns on the current web page. This must be done before using the `SelectDropdown` tool.\n\n### Important Reminders:\n\n- Only open and interact with one web page at a time. Do not attempt to read or click on multiple links simultaneously. Complete your interactions with the current web page before proceeding to a different source.\n",
+        "metadata": {},
+        "model": "gpt-4-1106-preview",
+        "name": "BrowsingAgent",
+        "object": "assistant",
+        "tools": [
+            {
+                "function": {
+                    "name": "StatisticalModelingTool",
+                    "description": "A tool for performing statistical analysis and modeling on market data.",
+                    "parameters": {
+                        "properties": {
+                            "data": {
+                                "default": null,
+                                "description": "The data to analyze. Can be a pandas DataFrame or other compatible format.",
+                                "title": "Data"
+                            },
+                            "analysis_type": {
+                                "description": "Type of statistical analysis to perform (e.g., 'regression', 'correlation', 'time_series')",
+                                "title": "Analysis Type",
+                                "type": "string"
+                            },
+                            "parameters": {
+                                "default": {},
+                                "description": "Additional parameters for the statistical analysis",
+                                "title": "Parameters",
+                                "type": "object"
+                            }
+                        },
+                        "required": [
+                            "analysis_type"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            },
+            {
+                "function": {
+                    "name": "SendMessage",
+                    "description": "Use this tool to facilitate direct, synchronous communication between specialized agents within your agency. When you send a message using this tool, you receive a response exclusively from the designated recipient agent. To continue the dialogue, invoke this tool again with the desired recipient agent and your follow-up message. Remember, communication here is synchronous; the recipient agent won't perform any tasks post-response. You are responsible for relaying the recipient agent's responses back to the user, as the user does not have direct access to these replies. Keep engaging with the tool for continuous interaction until the task is fully resolved. Do not send more than 1 message at a time.",
+                    "parameters": {
+                        "$defs": {
+                            "recipient": {
+                                "const": "MarketAnalysisAgent",
+                                "enum": [
+                                    "MarketAnalysisAgent"
+                                ],
+                                "title": "recipient",
+                                "type": "string"
+                            }
+                        },
+                        "properties": {
+                            "my_primary_instructions": {
+                                "description": "Please repeat your primary instructions step-by-step, including both completed and the following next steps that you need to perform. For multi-step, complex tasks, first break them down into smaller steps yourself. Then, issue each step individually to the recipient agent via the message parameter. Each identified step should be sent in separate message. Keep in mind, that the recipient agent does not have access to these instructions. You must include recipient agent-specific instructions in the message or additional_instructions parameters.",
+                                "title": "My Primary Instructions",
+                                "type": "string"
+                            },
+                            "recipient": {
+                                "allOf": [
+                                    {
+                                        "$ref": "#/$defs/recipient"
+                                    }
+                                ],
+                                "description": "MarketAnalysisAgent: This agent conducts market opportunity analysis using economic data and statistical modeling.\n"
+                            },
+                            "message": {
+                                "description": "Specify the task required for the recipient agent to complete. Focus on clarifying what the task entails, rather than providing exact instructions.",
+                                "title": "Message",
+                                "type": "string"
+                            },
+                            "message_files": {
+                                "anyOf": [
+                                    {
+                                        "items": {
+                                            "type": "string"
+                                        },
+                                        "type": "array"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "A list of file ids to be sent as attachments to this message. Only use this if you have the file id that starts with 'file-'.",
+                                "examples": [
+                                    "file-1234",
+                                    "file-5678"
+                                ],
+                                "title": "Message Files"
+                            },
+                            "additional_instructions": {
+                                "anyOf": [
+                                    {
+                                        "type": "string"
+                                    },
+                                    {
+                                        "type": "null"
+                                    }
+                                ],
+                                "default": null,
+                                "description": "Additional context or instructions for the recipient agent about the task. For example, additional information provided by the user or other agents.",
+                                "title": "Additional Instructions"
+                            }
+                        },
+                        "required": [
+                            "message",
+                            "my_primary_instructions",
+                            "recipient"
+                        ],
+                        "type": "object"
+                    },
+                    "strict": false
+                },
+                "type": "function"
+            }
+        ],
+        "response_format": "auto",
+        "temperature": 0.7,
+        "tool_resources": {
+            "code_interpreter": null,
             "file_search": null
         },
         "top_p": 1.0

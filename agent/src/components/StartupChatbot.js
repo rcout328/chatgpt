@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { callGroqApi } from '@/utils/groqApi';
 
-export default function StartupChatbot({ onComplete }) {
+export default function StartupChatbot({ onClose }) {
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -169,83 +169,80 @@ export default function StartupChatbot({ onComplete }) {
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-xl p-6 max-w-3xl mx-auto">
-      <div className="mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Startup Interview</h2>
-        <div className="mt-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
-          <p className="text-sm text-gray-600">
-            <span className="font-semibold">How this works:</span>
-            <br />
-            1. I'll ask you questions about your startup
-            <br />
-            2. Share as much detail as you'd like
-            <br />
-            3. When you feel you've covered everything, type 'end'
-            <br />
-            4. I'll create a comprehensive summary for analysis
-          </p>
-        </div>
-      </div>
-
-      {/* Chat Messages */}
-      <div className="h-[400px] overflow-y-auto mb-4 p-4 border rounded-lg">
-        {messages.map((message, index) => (
-          <div
-            key={index}
-            className={`mb-4 ${message.role === 'user' ? 'text-right' : ''}`}
+    <div className="w-full max-w-2xl bg-gradient-to-b from-purple-500/10 to-transparent p-[1px] rounded-2xl backdrop-blur-xl">
+      <div className="bg-[#1D1D1F]/90 p-8 rounded-2xl backdrop-blur-xl">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-semibold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
+            AI Assistant
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
           >
+            ✕
+          </button>
+        </div>
+
+        {/* Chat Messages */}
+        <div className="h-[400px] overflow-y-auto mb-4 space-y-4 scrollbar-thin scrollbar-thumb-purple-500/20 scrollbar-track-transparent">
+          {messages.map((message, index) => (
             <div
-              className={`inline-block p-3 rounded-lg ${
-                message.role === 'user'
-                  ? 'bg-blue-500 text-white'
-                  : message.role === 'system'
-                  ? 'bg-red-100 text-red-600'
-                  : 'bg-gray-100 text-gray-800'
-              }`}
+              key={index}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              <p className="whitespace-pre-wrap">{message.content}</p>
-              <span className="text-xs opacity-70 mt-1 block">
-                {new Date(message.timestamp).toLocaleTimeString()}
-              </span>
-            </div>
-          </div>
-        ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <div className="bg-gray-100 rounded-lg p-3">
-              <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-100"></div>
-                <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200"></div>
+              <div
+                className={`max-w-[80%] p-3 rounded-xl ${
+                  message.role === 'user'
+                    ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white'
+                    : message.role === 'system'
+                    ? 'bg-red-500/10 text-red-400'
+                    : 'bg-[#131314] text-gray-200'
+                }`}
+              >
+                <p className="whitespace-pre-wrap">{message.content}</p>
+                <span className="text-xs opacity-70 mt-1 block">
+                  {new Date(message.timestamp).toLocaleTimeString()}
+                </span>
               </div>
             </div>
-          </div>
-        )}
-        <div ref={messagesEndRef} />
-      </div>
+          ))}
+          {isLoading && (
+            <div className="flex justify-start">
+              <div className="bg-[#131314] rounded-xl p-3">
+                <div className="flex space-x-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-100"></div>
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce delay-200"></div>
+                </div>
+              </div>
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
 
-      {/* Input Form */}
-      <form onSubmit={handleSendMessage} className="flex space-x-2">
-        <input
-          type="text"
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-          placeholder={isComplete ? "Interview complete!" : "Type your answer..."}
-          className="flex-1 p-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
-          disabled={isComplete || isLoading}
-        />
-        <button
-          type="submit"
-          disabled={isComplete || isLoading || !inputMessage.trim()}
-          className={`px-4 py-2 rounded-lg font-medium ${
-            isComplete || isLoading || !inputMessage.trim()
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              : 'bg-blue-500 text-white hover:bg-blue-600'
-          }`}
-        >
-          Send
-        </button>
-      </form>
+        {/* Input Form */}
+        <form onSubmit={handleSendMessage} className="flex space-x-2">
+          <input
+            type="text"
+            value={inputMessage}
+            onChange={(e) => setInputMessage(e.target.value)}
+            placeholder={isComplete ? "Interview complete!" : "Type your message..."}
+            className="flex-1 p-3 bg-[#131314] text-gray-200 rounded-xl border border-purple-500/20 
+                     placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50"
+            disabled={isComplete || isLoading}
+          />
+          <button
+            type="submit"
+            disabled={isComplete || isLoading || !inputMessage.trim()}
+            className={`px-6 rounded-xl font-medium transition-all duration-200 
+                      ${isComplete || isLoading || !inputMessage.trim()
+                ? 'bg-gray-600 text-gray-300 cursor-not-allowed'
+                : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white'}`}
+          >
+            Send
+          </button>
+        </form>
+      </div>
     </div>
   );
 } 

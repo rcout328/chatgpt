@@ -4,9 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useStoredInput } from '@/hooks/useStoredInput';
 import { Line, Bar } from 'react-chartjs-2';
 import { callGroqApi } from '@/utils/groqApi';
-import ChatDialog from '@/components/ChatDialog';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
+import { useRouter } from 'next/navigation';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -31,34 +29,6 @@ ChartJS.register(
   Legend
 );
 
-// Add these helper functions at the top level
-const formatDate = (date) => {
-  return new Intl.DateTimeFormat('en-US', {
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  }).format(date);
-};
-
-const addPageHeader = (pdf, pageNumber, totalPages) => {
-  const pageWidth = pdf.internal.pageSize.getWidth();
-  pdf.setFontSize(8);
-  pdf.setTextColor(128, 128, 128);
-  pdf.text(`Page ${pageNumber} of ${totalPages}`, pageWidth - 20, 10, { align: 'right' });
-  pdf.text(formatDate(new Date()), 10, 10);
-};
-
-const addSectionTitle = (pdf, title, yPosition) => {
-  pdf.setFontSize(14);
-  pdf.setTextColor(0, 0, 0);
-  pdf.setFont(undefined, 'bold');
-  pdf.text(title, 10, yPosition);
-  pdf.setFont(undefined, 'normal');
-  return yPosition + 10;
-};
-
 export default function MarketTrendsContent() {
   const [userInput, setUserInput] = useStoredInput();
   const [marketAnalysis, setMarketAnalysis] = useState('');
@@ -67,50 +37,53 @@ export default function MarketTrendsContent() {
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [lastAnalyzedInput, setLastAnalyzedInput] = useState('');
+  const router = useRouter();
 
   // Add refs for the content we want to export
   const chartsRef = useRef(null);
   const analysisRef = useRef(null);
 
-  // Chart options
-  const lineOptions = {
+  // Updated chart options with dark theme
+  const chartOptions = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
-      legend: { position: 'top' },
+      legend: {
+        position: 'top',
+        labels: {
+          color: '#9ca3af',
+          font: {
+            size: 12
+          }
+        }
+      },
       title: {
         display: true,
-        text: 'Market Growth Trend',
-      },
+        color: '#9ca3af',
+        font: {
+          size: 14,
+          weight: 'bold'
+        }
+      }
     },
     scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: 'Growth Rate (%)',
+      x: {
+        grid: {
+          color: 'rgba(75, 85, 99, 0.2)'
         },
+        ticks: {
+          color: '#9ca3af'
+        }
       },
-    },
-  };
-
-  const barOptions = {
-    responsive: true,
-    plugins: {
-      legend: { position: 'top' },
-      title: {
-        display: true,
-        text: 'Market Segment Distribution',
-      },
-    },
-    scales: {
       y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: 'Market Share (%)',
+        grid: {
+          color: 'rgba(75, 85, 99, 0.2)'
         },
-      },
-    },
+        ticks: {
+          color: '#9ca3af'
+        }
+      }
+    }
   };
 
   // Parse market data from GROQ response
@@ -348,116 +321,155 @@ export default function MarketTrendsContent() {
     }
   };
 
+  // Add function to handle competitor tracking navigation
+  const handleCompetitorTracking = () => {
+    router.push('/competitor-tracking');
+  };
+
   // Don't render until mounted to prevent hydration issues
   if (!mounted) {
     return null;
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">
+    <div className="min-h-screen bg-[#131314] text-white p-6">
       <div className="max-w-7xl mx-auto">
-        <header className="text-center mb-8 relative">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Market Trends Analysis
-          </h1>
-          <div className="absolute right-0 top-0 flex space-x-2">
-            {marketData && (
+        {/* Header Section */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              Market Trends Analysis
+            </h1>
+            <p className="text-gray-400 mt-2">Analyze market trends and insights</p>
+          </div>
+          <div className="flex items-center space-x-4">
+            {marketAnalysis && (
               <button
                 onClick={exportToPDF}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+                className="bg-[#1D1D1F] hover:bg-[#2D2D2F] text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all"
               >
                 <span>📥</span>
                 <span>Export PDF</span>
               </button>
             )}
-            <ChatDialog currentPage="marketTrends" />
           </div>
-        </header>
+        </div>
 
-        {/* Market Visualization Section */}
-        {marketData && (
-          <div ref={chartsRef} className="grid md:grid-cols-2 gap-6 mb-8">
-            {/* Growth Trend Chart */}
-            <div className="bg-white rounded-xl shadow-xl p-6">
-              <div className="h-[400px]">
-                <Line options={lineOptions} data={marketData.monthlyGrowth} />
-              </div>
-            </div>
+        {/* Tabs */}
+        <div className="bg-[#1D1D1F] p-1 rounded-xl mb-8 inline-flex">
+          <button className="px-4 py-2 rounded-lg bg-purple-600 text-white">
+            Market Trends
+          </button>
+          <button 
+            onClick={handleCompetitorTracking}
+            className="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-purple-600/50 transition-all duration-200"
+          >
+            Competitor Tracking
+          </button>
+        </div>
 
-            {/* Market Segments Chart */}
-            <div className="bg-white rounded-xl shadow-xl p-6">
-              <div className="h-[400px]">
-                <Bar options={barOptions} data={marketData.marketSegments} />
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Charts Section */}
+          {marketData && (
+            <>
+              {/* Growth Trend Chart */}
+              <div className="bg-[#1D1D1F] p-6 rounded-2xl border border-purple-500/10">
+                <h3 className="text-xl font-semibold mb-4 text-gray-200">Growth Trend</h3>
+                <div className="h-[300px]">
+                  <Line 
+                    options={{
+                      ...chartOptions,
+                      plugins: {
+                        ...chartOptions.plugins,
+                        title: {
+                          ...chartOptions.plugins.title,
+                          text: 'Market Growth Over Time'
+                        }
+                      }
+                    }} 
+                    data={marketData.monthlyGrowth}
+                  />
+                </div>
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* Input Form */}
-        <div className="mb-8">
-          {isLoading || !userInput.trim() ? (
-            <div className="flex justify-center items-center h-full">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-              <div className="mb-4">
-                <textarea
-                  value={userInput}
-                  onChange={(e) => setUserInput(e.target.value)}
-                  placeholder="Enter your business details for market analysis..."
-                  className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 h-32 resize-none text-black"
-                  disabled={isLoading}
-                />
+              {/* Market Segments Chart */}
+              <div className="bg-[#1D1D1F] p-6 rounded-2xl border border-purple-500/10">
+                <h3 className="text-xl font-semibold mb-4 text-gray-200">Market Segments</h3>
+                <div className="h-[300px]">
+                  <Bar 
+                    options={{
+                      ...chartOptions,
+                      plugins: {
+                        ...chartOptions.plugins,
+                        title: {
+                          ...chartOptions.plugins.title,
+                          text: 'Market Share Distribution'
+                        }
+                      }
+                    }} 
+                    data={marketData.marketSegments}
+                  />
+                </div>
               </div>
-              <div className="mb-4 text-sm text-gray-600 bg-blue-50 p-4 rounded-lg border border-blue-200">
-                <p className="flex items-center">
-                  <span className="mr-2">💡</span>
-                  <strong>Pro Tip:</strong> After describing your business idea, you can chat with our AI assistant for a more detailed discussion. When you're done sharing all the details, simply type "end" in the chat to get a comprehensive summary.
-                </p>
-              </div>
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`w-full p-4 rounded-lg font-medium transition-colors ${
-                  !isLoading
-                    ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                    : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-              >
-                {isLoading ? 'Analyzing...' : 'Analyze Market'}
-              </button>
-            </form>
+            </>
           )}
         </div>
 
-        {/* Analysis Results */}
-        <div className="grid md:grid-cols-1 gap-6">
-          <div className="bg-white rounded-xl shadow-xl p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-700 flex items-center">
-              <span className="mr-2">📊</span> Market Analysis
-            </h2>
-            <div ref={analysisRef} className="bg-gray-50 rounded-lg p-4 min-h-[300px]">
-              {error ? (
-                <div className="text-red-500">
-                  {error}
-                  <p className="text-sm mt-2">Please try refreshing the page or contact support if the problem persists.</p>
-                </div>
-              ) : isLoading ? (
-                <div className="flex justify-center items-center h-full">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-                </div>
-              ) : marketAnalysis ? (
-                <div className="prose text-black whitespace-pre-wrap">{marketAnalysis}</div>
-              ) : (
-                <div className="text-gray-500 italic">
-                  Market analysis results will appear here...
-                </div>
-              )}
+        {/* Analysis Form */}
+        <div className="bg-[#1D1D1F] rounded-2xl border border-purple-500/10 p-6">
+          <h2 className="text-2xl font-semibold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
+            Market Analysis
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <textarea
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                placeholder="Enter your business details for market analysis..."
+                className="w-full h-32 px-4 py-3 bg-[#131314] text-gray-200 rounded-xl border border-purple-500/20 
+                         placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none"
+                disabled={isLoading}
+              />
             </div>
+            <button
+              type="submit"
+              disabled={isLoading || !userInput.trim()}
+              className={`w-full py-4 px-6 rounded-xl font-medium transition-all duration-200 
+                        ${!isLoading && userInput.trim()
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/25'
+                  : 'bg-gray-600 text-gray-300 cursor-not-allowed'}`}
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                  <span>Analyzing...</span>
+                </div>
+              ) : (
+                'Analyze Market'
+              )}
+            </button>
+          </form>
+
+          {/* Analysis Results */}
+          <div className="mt-6">
+            {error ? (
+              <div className="text-red-500">
+                {error}
+                <p className="text-sm mt-2">Please try refreshing the page or contact support if the problem persists.</p>
+              </div>
+            ) : marketAnalysis ? (
+              <div className="prose text-gray-300 max-w-none">
+                <div className="whitespace-pre-wrap">{marketAnalysis}</div>
+              </div>
+            ) : !isLoading && (
+              <div className="text-gray-500 italic">
+                Market analysis results will appear here...
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

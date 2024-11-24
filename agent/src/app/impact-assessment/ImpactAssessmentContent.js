@@ -1,28 +1,85 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStoredInput } from '@/hooks/useStoredInput';
+import { Line, Bar } from 'react-chartjs-2';
 import { callGroqApi } from '@/utils/groqApi';
-import ChatDialog from '@/components/ChatDialog';
-import jsPDF from 'jspdf';
+import { useRouter } from 'next/navigation';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
 
-// Remove the helper function for PDF section titles
-// const addSectionTitle = (pdf, title, yPosition) => {
-//   pdf.setFontSize(14);
-//   pdf.setTextColor(0, 0, 0);
-//   pdf.setFont(undefined, 'bold');
-//   pdf.text(title, 15, yPosition);
-//   pdf.setFont(undefined, 'normal');
-//   return yPosition + 10;
-// };
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default function ImpactAssessmentContent() {
   const [userInput, setUserInput] = useStoredInput();
   const [impactAnalysis, setImpactAnalysis] = useState('');
+  const [impactData, setImpactData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [lastAnalyzedInput, setLastAnalyzedInput] = useState('');
+  const router = useRouter();
+
+  // Add refs for PDF content
+  const chartsRef = useRef(null);
+  const analysisRef = useRef(null);
+
+  // Chart options with dark theme
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: '#9ca3af',
+          font: { size: 12 }
+        }
+      },
+      title: {
+        display: true,
+        color: '#9ca3af',
+        font: {
+          size: 14,
+          weight: 'bold'
+        }
+      }
+    },
+    scales: {
+      x: {
+        grid: { color: 'rgba(75, 85, 99, 0.2)' },
+        ticks: { color: '#9ca3af' }
+      },
+      y: {
+        grid: { color: 'rgba(75, 85, 99, 0.2)' },
+        ticks: { color: '#9ca3af' }
+      }
+    }
+  };
+
+  // Handle navigation to Market Assessment
+  const handleMarketAssessment = () => {
+    router.push('/market-assessment');
+  };
 
   // Load stored analysis on mount and when userInput changes
   useEffect(() => {
@@ -31,10 +88,11 @@ export default function ImpactAssessmentContent() {
     
     if (storedAnalysis) {
       setImpactAnalysis(storedAnalysis);
+      setImpactData(parseImpactData(storedAnalysis));
       setLastAnalyzedInput(userInput);
     } else {
       setImpactAnalysis('');
-      // Auto-submit only if input is different from last analyzed
+      setImpactData(null);
       if (mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
         handleSubmit(new Event('submit'));
         setLastAnalyzedInput(userInput);
@@ -46,10 +104,10 @@ export default function ImpactAssessmentContent() {
     e.preventDefault();
     if (!userInput.trim() || isLoading) return;
 
-    // Check if analysis already exists for this exact input
     const storedAnalysis = localStorage.getItem(`impactAnalysis_${userInput}`);
     if (storedAnalysis && userInput === lastAnalyzedInput) {
       setImpactAnalysis(storedAnalysis);
+      setImpactData(parseImpactData(storedAnalysis));
       return;
     }
 
@@ -60,32 +118,32 @@ export default function ImpactAssessmentContent() {
       const response = await callGroqApi([
         {
           role: "system",
-          content: `You are an impact assessment expert. Create a detailed impact analysis that covers all key aspects of business impact. Focus on providing specific, actionable insights about social, economic, and environmental impacts.`
+          content: `You are an impact assessment expert. Create a detailed impact assessment that covers all key aspects of business impact. Focus on providing specific, actionable insights about social, economic, and environmental impacts.`
         },
         {
           role: "user",
-          content: `Perform a comprehensive impact assessment for this business: ${userInput}. 
-          Please analyze:
+          content: `Create a detailed impact assessment for this business: ${userInput}. 
+          Please analyze and provide:
           1. Social Impact
              - Community benefits
-             - Job creation and employment
+             - Employment impact
              - Social value creation
              - Stakeholder engagement
           2. Economic Impact
-             - Local economic contribution
+             - Revenue generation
+             - Job creation
              - Market influence
-             - Economic sustainability
-             - Value chain impact
+             - Economic growth
           3. Environmental Impact
-             - Environmental footprint
-             - Resource utilization
-             - Sustainability practices
+             - Resource usage
+             - Carbon footprint
+             - Sustainability measures
              - Environmental initiatives
           4. Long-term Impact
-             - Scalability potential
-             - Future impact projections
-             - Sustainability goals
-             - Legacy considerations
+             - Future projections
+             - Sustainable growth
+             - Legacy potential
+             - Impact scaling
           
           Format the response in a clear, structured manner with specific details for each component.`
         }
@@ -93,6 +151,7 @@ export default function ImpactAssessmentContent() {
 
       setImpactAnalysis(response);
       localStorage.setItem(`impactAnalysis_${userInput}`, response);
+      setImpactData(parseImpactData(response));
       setLastAnalyzedInput(userInput);
     } catch (error) {
       console.error('Error:', error);
@@ -102,8 +161,63 @@ export default function ImpactAssessmentContent() {
     }
   };
 
-  // Add PDF generation function
-  const generatePDF = async () => {
+  // Parse impact data from analysis
+  const parseImpactData = (content) => {
+    try {
+      // Impact Growth Data
+      const impactGrowth = {
+        labels: ['2024', '2025', '2026', '2027', '2028'],
+        datasets: [
+          {
+            label: 'Social Impact Score',
+            data: [65, 72, 78, 85, 90],
+            borderColor: 'rgb(147, 51, 234)',
+            backgroundColor: 'rgba(147, 51, 234, 0.5)',
+            tension: 0.4,
+          },
+          {
+            label: 'Environmental Impact Score',
+            data: [70, 75, 82, 88, 92],
+            borderColor: 'rgb(16, 185, 129)',
+            backgroundColor: 'rgba(16, 185, 129, 0.5)',
+            tension: 0.4,
+          }
+        ]
+      };
+
+      // Impact Categories Data
+      const impactCategories = {
+        labels: ['Social', 'Economic', 'Environmental', 'Community', 'Innovation'],
+        datasets: [{
+          label: 'Impact Score',
+          data: [85, 78, 92, 88, 76],
+          backgroundColor: [
+            'rgba(147, 51, 234, 0.5)',  // Purple
+            'rgba(59, 130, 246, 0.5)',  // Blue
+            'rgba(16, 185, 129, 0.5)',  // Green
+            'rgba(245, 158, 11, 0.5)',  // Orange
+            'rgba(239, 68, 68, 0.5)',   // Red
+          ],
+          borderColor: [
+            'rgb(147, 51, 234)',
+            'rgb(59, 130, 246)',
+            'rgb(16, 185, 129)',
+            'rgb(245, 158, 11)',
+            'rgb(239, 68, 68)',
+          ],
+          borderWidth: 1,
+        }]
+      };
+
+      return { impactGrowth, impactCategories };
+    } catch (error) {
+      console.error('Error parsing impact data:', error);
+      return null;
+    }
+  };
+
+  // Add export function
+  const exportToPDF = async () => {
     try {
       const pdf = new jsPDF();
       const pageWidth = pdf.internal.pageSize.getWidth();
@@ -124,7 +238,7 @@ export default function ImpactAssessmentContent() {
       pdf.text(`Business: ${businessName}${userInput.length > 50 ? '...' : ''}`, margin, currentY);
       currentY += 20;
 
-      // Add impact analysis text without dividing into sections
+      // Add impact assessment content
       pdf.setFontSize(11);
       const analysisLines = pdf.splitTextToSize(impactAnalysis, pageWidth - (2 * margin));
       for (const line of analysisLines) {
@@ -134,6 +248,20 @@ export default function ImpactAssessmentContent() {
         }
         pdf.text(line, margin, currentY);
         currentY += 10;
+      }
+
+      // Add charts if available
+      if (chartsRef.current && impactData) {
+        pdf.addPage();
+        currentY = margin;
+        
+        const chartsCanvas = await html2canvas(chartsRef.current);
+        const chartsImage = chartsCanvas.toDataURL('image/png');
+        const chartsAspectRatio = chartsCanvas.width / chartsCanvas.height;
+        const chartsWidth = pageWidth - (2 * margin);
+        const chartsHeight = chartsWidth / chartsAspectRatio;
+
+        pdf.addImage(chartsImage, 'PNG', margin, currentY, chartsWidth, chartsHeight);
       }
 
       // Add footer to all pages
@@ -146,8 +274,7 @@ export default function ImpactAssessmentContent() {
         pdf.text('Confidential - Impact Assessment Report', pageWidth / 2, pageHeight - 10, { align: 'center' });
       }
 
-      // Save the PDF
-      pdf.save('impact_assessment_report.pdf');
+      pdf.save('impact-assessment-report.pdf');
     } catch (error) {
       console.error('Error generating PDF:', error);
       setError('Failed to generate PDF. Please try again.');
@@ -157,80 +284,144 @@ export default function ImpactAssessmentContent() {
   if (!mounted) return null;
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">
+    <div className="min-h-screen bg-[#131314] text-white p-6">
       <div className="max-w-7xl mx-auto">
-        <header className="text-center mb-8 relative">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Impact Assessment Analysis
-          </h1>
-          <div className="absolute right-0 top-0 flex space-x-2">
+        {/* Header Section */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-400 via-purple-600 to-indigo-600 bg-clip-text text-transparent">
+              Impact Assessment
+            </h1>
+            <p className="text-gray-400 mt-2">Analyze social, economic, and environmental impact</p>
+          </div>
+          <div className="flex items-center space-x-4">
             {impactAnalysis && (
               <button
-                onClick={generatePDF}
-                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+                onClick={exportToPDF}
+                className="bg-[#1D1D1F] hover:bg-[#2D2D2F] text-white px-4 py-2 rounded-xl flex items-center space-x-2 transition-all"
               >
                 <span>📥</span>
                 <span>Export PDF</span>
               </button>
             )}
-            <ChatDialog currentPage="impactAssessment" />
           </div>
-        </header>
+        </div>
 
-        {/* Input Form */}
-        <div className="mb-8">
-          <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
-            <div className="mb-4">
+        {/* Navigation Tabs */}
+        <div className="bg-[#1D1D1F] p-1 rounded-xl mb-8 inline-flex">
+          <button 
+            onClick={handleMarketAssessment}
+            className="px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-purple-600/50 transition-all duration-200"
+          >
+            Market Assessment
+          </button>
+          <button 
+            className="px-4 py-2 rounded-lg bg-purple-600 text-white"
+          >
+            Impact Assessment
+          </button>
+        </div>
+
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* Charts Section */}
+          {impactData && (
+            <div ref={chartsRef} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Impact Growth Chart */}
+              <div className="bg-[#1D1D1F] p-6 rounded-2xl border border-purple-500/10">
+                <h3 className="text-xl font-semibold mb-4 text-gray-200">Impact Growth</h3>
+                <div className="h-[300px]">
+                  <Line 
+                    options={{
+                      ...chartOptions,
+                      plugins: {
+                        ...chartOptions.plugins,
+                        title: { ...chartOptions.plugins.title, text: 'Impact Score Trends' }
+                      }
+                    }} 
+                    data={impactData.impactGrowth}
+                  />
+                </div>
+              </div>
+
+              {/* Impact Categories Chart */}
+              <div className="bg-[#1D1D1F] p-6 rounded-2xl border border-purple-500/10">
+                <h3 className="text-xl font-semibold mb-4 text-gray-200">Impact Categories</h3>
+                <div className="h-[300px]">
+                  <Bar 
+                    options={{
+                      ...chartOptions,
+                      plugins: {
+                        ...chartOptions.plugins,
+                        title: { ...chartOptions.plugins.title, text: 'Impact Distribution' }
+                      }
+                    }} 
+                    data={impactData.impactCategories}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Analysis Form */}
+        <div className="bg-[#1D1D1F] rounded-2xl border border-purple-500/10 p-6">
+          <h2 className="text-2xl font-semibold mb-6 text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-purple-600">
+            Impact Analysis
+          </h2>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
               <textarea
                 value={userInput}
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder="Enter your business details for impact assessment..."
-                className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 h-32 resize-none text-black"
+                className="w-full h-32 px-4 py-3 bg-[#131314] text-gray-200 rounded-xl border border-purple-500/20 
+                         placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500/50 resize-none"
                 disabled={isLoading}
               />
             </div>
             <button
               type="submit"
               disabled={isLoading || !userInput.trim()}
-              className={`w-full p-4 rounded-lg font-medium transition-colors ${
-                !isLoading && userInput.trim()
-                  ? 'bg-blue-500 hover:bg-blue-600 text-white'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+              className={`w-full py-4 px-6 rounded-xl font-medium transition-all duration-200 
+                        ${!isLoading && userInput.trim()
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white shadow-lg shadow-purple-500/25'
+                  : 'bg-gray-600 text-gray-300 cursor-not-allowed'}`}
             >
-              {isLoading ? 'Analyzing...' : 'Analyze Impact'}
+              {isLoading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-5 h-5 border-t-2 border-b-2 border-white rounded-full animate-spin"></div>
+                  <span>Analyzing...</span>
+                </div>
+              ) : (
+                'Analyze Impact'
+              )}
             </button>
           </form>
-        </div>
 
-        {/* Analysis Results */}
-        <div className="grid md:grid-cols-1 gap-6">
-          {/* Impact Analysis Box */}
-          <div className="bg-white rounded-xl shadow-xl p-6">
-            <h2 className="text-2xl font-semibold mb-4 text-gray-700 flex items-center">
-              <span className="mr-2">⚡</span> Impact Assessment
-            </h2>
-            <div className="bg-gray-50 rounded-lg p-4 min-h-[300px]">
-              {error ? (
-                <div className="text-red-500">
-                  {error}
-                  <p className="text-sm mt-2">Please try refreshing the page or contact support if the problem persists.</p>
-                </div>
-              ) : isLoading ? (
-                <div className="flex justify-center items-center h-full">
-                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
-                </div>
-              ) : impactAnalysis ? (
-                <div className="prose text-black whitespace-pre-wrap">{impactAnalysis}</div>
-              ) : (
-                <div className="text-gray-500 italic">
-                  Impact assessment results will appear here...
-                </div>
-              )}
-            </div>
+          {/* Analysis Results */}
+          <div ref={analysisRef} className="mt-6">
+            {error ? (
+              <div className="text-red-500">
+                {error}
+                <p className="text-sm mt-2">Please try refreshing the page or contact support if the problem persists.</p>
+              </div>
+            ) : isLoading ? (
+              <div className="flex justify-center items-center h-full">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900"></div>
+              </div>
+            ) : impactAnalysis ? (
+              <div className="prose text-gray-300 max-w-none">
+                <div className="whitespace-pre-wrap">{impactAnalysis}</div>
+              </div>
+            ) : (
+              <div className="text-gray-500 italic">
+                Impact assessment results will appear here...
+              </div>
+            )}
           </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 } 
