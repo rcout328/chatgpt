@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStoredInput } from '@/hooks/useStoredInput';
 import { callGroqApi } from '@/utils/groqApi';
 import ChatDialog from '@/components/ChatDialog';
+import jsPDF from 'jspdf';
 
 export default function JourneyMappingContent() {
   const [userInput, setUserInput] = useStoredInput();
@@ -12,6 +13,56 @@ export default function JourneyMappingContent() {
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [lastAnalyzedInput, setLastAnalyzedInput] = useState('');
+
+  const analysisRef = useRef(null);
+
+  const exportToPDF = async () => {
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      let currentY = margin;
+
+      pdf.setFontSize(20);
+      pdf.setTextColor(0, 102, 204);
+      pdf.text('Customer Journey Mapping Report', pageWidth / 2, currentY, { align: 'center' });
+      currentY += 15;
+
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      const businessName = userInput.substring(0, 50);
+      pdf.text(`Business: ${businessName}${userInput.length > 50 ? '...' : ''}`, margin, currentY);
+      currentY += 20;
+
+      pdf.setFontSize(11);
+      const fullContent = journeyMapping || 'No analysis available.';
+      const contentLines = pdf.splitTextToSize(fullContent, pageWidth - (2 * margin));
+
+      for (const line of contentLines) {
+        if (currentY + 10 > pageHeight - margin) {
+          pdf.addPage();
+          currentY = margin;
+        }
+        pdf.text(line, margin, currentY);
+        currentY += 10;
+      }
+
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(128, 128, 128);
+        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+        pdf.text('Confidential - Customer Journey Analysis', pageWidth / 2, pageHeight - 10, { align: 'center' });
+      }
+
+      pdf.save('customer-journey-analysis.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      setError('Failed to generate PDF. Please try again.');
+    }
+  };
 
   // Load stored analysis on mount and when userInput changes
   useEffect(() => {
@@ -56,25 +107,9 @@ export default function JourneyMappingContent() {
           content: `Create a detailed customer journey map for this business: ${userInput}. 
           Please analyze and provide:
           1. Pre-Purchase Journey
-             - Awareness stage touchpoints
-             - Consideration phase interactions
-             - Decision-making triggers
-             - Information gathering channels
           2. Purchase Experience
-             - Purchase process steps
-             - Key decision points
-             - Interaction channels
-             - Pain points and friction
           3. Post-Purchase Journey
-             - Onboarding process
-             - Customer support interactions
-             - Feedback mechanisms
-             - Retention touchpoints
           4. Journey Optimization
-             - Key improvement areas
-             - Enhancement opportunities
-             - Customer satisfaction drivers
-             - Loyalty building points
           
           Format the response in a clear, structured manner with specific details for each stage of the journey.`
         }
@@ -100,7 +135,16 @@ export default function JourneyMappingContent() {
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             Customer Journey Mapping
           </h1>
-          <div className="absolute right-0 top-0">
+          <div className="absolute right-0 top-0 flex space-x-2">
+            {journeyMapping && (
+              <button
+                onClick={exportToPDF}
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+              >
+                <span>📥</span>
+                <span>Export PDF</span>
+              </button>
+            )}
             <ChatDialog currentPage="journeyMapping" />
           </div>
         </header>
@@ -134,7 +178,7 @@ export default function JourneyMappingContent() {
         {/* Analysis Results */}
         <div className="grid md:grid-cols-1 gap-6">
           {/* Journey Mapping Box */}
-          <div className="bg-white rounded-xl shadow-xl p-6">
+          <div ref={analysisRef} className="bg-white rounded-xl shadow-xl p-6">
             <h2 className="text-2xl font-semibold mb-4 text-gray-700 flex items-center">
               <span className="mr-2">🗺️</span> Journey Mapping
             </h2>

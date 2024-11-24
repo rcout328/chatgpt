@@ -4,6 +4,17 @@ import { useState, useEffect } from 'react';
 import { useStoredInput } from '@/hooks/useStoredInput';
 import { callGroqApi } from '@/utils/groqApi';
 import ChatDialog from '@/components/ChatDialog';
+import jsPDF from 'jspdf';
+
+// Remove the helper function for PDF section titles
+// const addSectionTitle = (pdf, title, yPosition) => {
+//   pdf.setFontSize(14);
+//   pdf.setTextColor(0, 0, 0);
+//   pdf.setFont(undefined, 'bold');
+//   pdf.text(title, 15, yPosition);
+//   pdf.setFont(undefined, 'normal');
+//   return yPosition + 10;
+// };
 
 export default function ComplianceCheckContent() {
   const [userInput, setUserInput] = useStoredInput();
@@ -91,6 +102,58 @@ export default function ComplianceCheckContent() {
     }
   };
 
+  // Add PDF generation function
+  const generatePDF = async () => {
+    try {
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      let currentY = margin;
+
+      // Add title
+      pdf.setFontSize(20);
+      pdf.setTextColor(0, 102, 204);
+      pdf.text('Compliance Check Report', pageWidth / 2, currentY, { align: 'center' });
+      currentY += 15;
+
+      // Add business name
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      const businessName = userInput.substring(0, 50);
+      pdf.text(`Business: ${businessName}${userInput.length > 50 ? '...' : ''}`, margin, currentY);
+      currentY += 20;
+
+      // Add compliance analysis text without dividing into sections
+      pdf.setFontSize(11);
+      const analysisLines = pdf.splitTextToSize(complianceAnalysis, pageWidth - (2 * margin));
+      for (const line of analysisLines) {
+        if (currentY + 10 > pageHeight - margin) {
+          pdf.addPage();
+          currentY = margin;
+        }
+        pdf.text(line, margin, currentY);
+        currentY += 10;
+      }
+
+      // Add footer to all pages
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(128, 128, 128);
+        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+        pdf.text('Confidential - Compliance Check Report', pageWidth / 2, pageHeight - 10, { align: 'center' });
+      }
+
+      // Save the PDF
+      pdf.save('compliance_check_report.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      setError('Failed to generate PDF. Please try again.');
+    }
+  };
+
   if (!mounted) return null;
 
   return (
@@ -100,7 +163,16 @@ export default function ComplianceCheckContent() {
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             Compliance Check Analysis
           </h1>
-          <div className="absolute right-0 top-0">
+          <div className="absolute right-0 top-0 flex space-x-2">
+            {complianceAnalysis && (
+              <button
+                onClick={generatePDF}
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+              >
+                <span>📥</span>
+                <span>Export PDF</span>
+              </button>
+            )}
             <ChatDialog currentPage="complianceCheck" />
           </div>
         </header>

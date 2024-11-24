@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useStoredInput } from '@/hooks/useStoredInput';
 import { callGroqApi } from '@/utils/groqApi';
 import ChatDialog from '@/components/ChatDialog';
+import jsPDF from 'jspdf';
 
 export default function MarketAssessmentContent() {
   const [userInput, setUserInput] = useStoredInput();
@@ -91,6 +92,58 @@ export default function MarketAssessmentContent() {
     }
   };
 
+  // Add PDF generation function
+  const generatePDF = async () => {
+    try {
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      let currentY = margin;
+
+      // Add title
+      pdf.setFontSize(20);
+      pdf.setTextColor(0, 102, 204);
+      pdf.text('Market Assessment Report', pageWidth / 2, currentY, { align: 'center' });
+      currentY += 15;
+
+      // Add business name
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      const businessName = userInput.substring(0, 50);
+      pdf.text(`Business: ${businessName}${userInput.length > 50 ? '...' : ''}`, margin, currentY);
+      currentY += 20;
+
+      // Add the market assessment text directly from the response
+      pdf.setFontSize(11);
+      const assessmentLines = pdf.splitTextToSize(marketAssessment, pageWidth - (2 * margin));
+      for (const line of assessmentLines) {
+        if (currentY + 10 > pageHeight - margin) {
+          pdf.addPage();
+          currentY = margin;
+        }
+        pdf.text(line, margin, currentY);
+        currentY += 10;
+      }
+
+      // Add footer to all pages
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(128, 128, 128);
+        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+        pdf.text('Confidential - Market Assessment Report', pageWidth / 2, pageHeight - 10, { align: 'center' });
+      }
+
+      // Save the PDF
+      pdf.save('market_assessment_report.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      setError('Failed to generate PDF. Please try again.');
+    }
+  };
+
   if (!mounted) return null;
 
   return (
@@ -100,7 +153,16 @@ export default function MarketAssessmentContent() {
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             Market Assessment Analysis
           </h1>
-          <div className="absolute right-0 top-0">
+          <div className="absolute right-0 top-0 flex space-x-2">
+            {marketAssessment && (
+              <button
+                onClick={generatePDF}
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+              >
+                <span>📥</span>
+                <span>Export PDF</span>
+              </button>
+            )}
             <ChatDialog currentPage="marketAssessment" />
           </div>
         </header>
@@ -151,7 +213,7 @@ export default function MarketAssessmentContent() {
               ) : marketAssessment ? (
                 <div className="prose text-black whitespace-pre-wrap">{marketAssessment}</div>
               ) : (
-                <div className="text-gray-500 italic">
+                <div className="text-gray-xw500 italic">
                   Market assessment results will appear here...
                 </div>
               )}

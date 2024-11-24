@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useStoredInput } from '@/hooks/useStoredInput';
 import { Line, Bar, Radar } from 'react-chartjs-2';
 import { callGroqApi } from '@/utils/groqApi';
@@ -18,6 +18,8 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 // Register ChartJS components
 ChartJS.register(
@@ -33,6 +35,26 @@ ChartJS.register(
   Filler
 );
 
+// Add helper functions at the top level
+const formatDate = (date) => {
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+};
+
+const addSectionTitle = (pdf, title, yPosition) => {
+  pdf.setFontSize(14);
+  pdf.setTextColor(0, 0, 0);
+  pdf.setFont(undefined, 'bold');
+  pdf.text(title, 15, yPosition);
+  pdf.setFont(undefined, 'normal');
+  return yPosition + 10;
+};
+
 export default function CompetitorTrackingContent() {
   const [userInput, setUserInput] = useStoredInput();
   const [competitorAnalysis, setCompetitorAnalysis] = useState('');
@@ -41,6 +63,10 @@ export default function CompetitorTrackingContent() {
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [lastAnalyzedInput, setLastAnalyzedInput] = useState('');
+
+  // Add refs for PDF content
+  const chartsRef = useRef(null);
+  const analysisRef = useRef(null);
 
   // Load stored analysis on mount and when userInput changes
   useEffect(() => {
@@ -197,6 +223,99 @@ export default function CompetitorTrackingContent() {
     },
   };
 
+  // Add PDF generation function
+  const generatePDF = async () => {
+    try {
+      const pdf = new jsPDF();
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 15;
+      let currentY = margin;
+
+      // Add title
+      pdf.setFontSize(20);
+      pdf.setTextColor(0, 102, 204);
+      pdf.text('Competitor Analysis Report', pageWidth / 2, currentY, { align: 'center' });
+      currentY += 15;
+
+      // Add business name
+      pdf.setFontSize(12);
+      pdf.setTextColor(0, 0, 0);
+      const businessName = userInput.substring(0, 50);
+      pdf.text(`Business: ${businessName}${userInput.length > 50 ? '...' : ''}`, margin, currentY);
+      currentY += 20;
+
+      // Add executive summary
+      currentY = addSectionTitle(pdf, '1. Executive Summary', currentY);
+      pdf.setFontSize(11);
+      const summaryText = "This report provides a comprehensive analysis of your competitors, including market share distribution, competitive positioning, and strategic insights.";
+      const summaryLines = pdf.splitTextToSize(summaryText, pageWidth - (2 * margin));
+      pdf.text(summaryLines, margin, currentY);
+      currentY += (summaryLines.length * 7) + 10;
+
+      // Add competitor analysis section
+      currentY = addSectionTitle(pdf, '2. Detailed Competitor Analysis', currentY);
+      if (competitorAnalysis) {
+        pdf.setFontSize(10);
+        const analysisLines = pdf.splitTextToSize(competitorAnalysis, pageWidth - (2 * margin));
+        
+        // Check if we need a new page
+        if (currentY + (analysisLines.length * 5) > pageHeight - margin) {
+          pdf.addPage();
+          currentY = margin;
+        }
+        
+        pdf.text(analysisLines, margin, currentY);
+        currentY += analysisLines.length * 5 + 15;
+      }
+
+      // Add market share visualization
+      if (chartsRef.current && competitorData) {
+        if (currentY + 100 > pageHeight - margin) {
+          pdf.addPage();
+          currentY = margin;
+        }
+
+        currentY = addSectionTitle(pdf, '3. Market Share Visualization', currentY);
+        const chartsCanvas = await html2canvas(chartsRef.current);
+        const chartsImage = chartsCanvas.toDataURL('image/png');
+        const chartsAspectRatio = chartsCanvas.width / chartsCanvas.height;
+        const chartsWidth = pageWidth - (2 * margin);
+        const chartsHeight = chartsWidth / chartsAspectRatio;
+
+        pdf.addImage(chartsImage, 'PNG', margin, currentY + 5, chartsWidth, chartsHeight);
+        currentY += chartsHeight + 15;
+      }
+
+      // Add recommendations section
+      if (currentY + 40 > pageHeight - margin) {
+        pdf.addPage();
+        currentY = margin;
+      }
+
+      currentY = addSectionTitle(pdf, '4. Strategic Recommendations', currentY);
+      const recommendationsText = "Based on the competitive analysis, we recommend focusing on differentiating factors and addressing identified market gaps to strengthen your competitive position.";
+      const recLines = pdf.splitTextToSize(recommendationsText, pageWidth - (2 * margin));
+      pdf.text(recLines, margin, currentY + 5);
+
+      // Add footer to all pages
+      const totalPages = pdf.internal.getNumberOfPages();
+      for (let i = 1; i <= totalPages; i++) {
+        pdf.setPage(i);
+        pdf.setFontSize(8);
+        pdf.setTextColor(128, 128, 128);
+        pdf.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 10, { align: 'right' });
+        pdf.text('Confidential - Competitor Analysis Report', pageWidth / 2, pageHeight - 10, { align: 'center' });
+      }
+
+      // Save the PDF
+      pdf.save('competitor_analysis_report.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      setError('Failed to generate PDF. Please try again.');
+    }
+  };
+
   // Don't render until mounted to prevent hydration issues
   if (!mounted) {
     return null;
@@ -209,7 +328,16 @@ export default function CompetitorTrackingContent() {
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             Competitor Tracking Analysis
           </h1>
-          <div className="absolute right-0 top-0">
+          <div className="absolute right-0 top-0 flex space-x-2">
+            {competitorAnalysis && (
+              <button
+                onClick={generatePDF}
+                className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+              >
+                <span>📥</span>
+                <span>Export PDF</span>
+              </button>
+            )}
             <ChatDialog currentPage="competitorTracking" />
           </div>
         </header>
@@ -270,7 +398,7 @@ export default function CompetitorTrackingContent() {
 
         {/* Competitor Visualization Section */}
         {competitorData && (
-          <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div ref={chartsRef} className="grid md:grid-cols-2 gap-6 mb-8">
             {/* Market Share Chart */}
             <div className="bg-white rounded-xl shadow-xl p-6">
               <div className="h-[400px]">
@@ -286,6 +414,11 @@ export default function CompetitorTrackingContent() {
             </div>
           </div>
         )}
+
+        {/* Analysis section with ref */}
+        <div ref={analysisRef} className="bg-white rounded-xl shadow-xl p-6">
+          {/* Your existing analysis content... */}
+        </div>
       </div>
     </main>
   );
