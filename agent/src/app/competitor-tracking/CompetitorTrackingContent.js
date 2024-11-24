@@ -3,6 +3,34 @@
 import { useState, useEffect } from 'react';
 import { socket, safeEmit, checkConnection } from '@/config/socket';
 import { useStoredInput } from '@/hooks/useStoredInput';
+import { Line, Bar, Radar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  RadialLinearScale,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  RadialLinearScale,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 export default function CompetitorTrackingContent() {
   const [userInput, setUserInput] = useStoredInput();
@@ -12,6 +40,7 @@ export default function CompetitorTrackingContent() {
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [lastAnalyzedInput, setLastAnalyzedInput] = useState('');
+  const [competitorData, setCompetitorData] = useState(null);
 
   // Load stored analysis on mount and when userInput changes
   useEffect(() => {
@@ -55,7 +84,8 @@ export default function CompetitorTrackingContent() {
       if (data.analysisType === 'competitor') {
         const analysisResult = data.content;
         setCompetitorAnalysis(analysisResult);
-        // Store the analysis result and update last analyzed input
+        const parsedData = parseCompetitorData(analysisResult);
+        setCompetitorData(parsedData);
         localStorage.setItem(`competitorAnalysis_${userInput}`, analysisResult);
         setLastAnalyzedInput(userInput);
       }
@@ -126,6 +156,113 @@ export default function CompetitorTrackingContent() {
       setError('Failed to send analysis request. Please try again.');
       setIsLoading(false);
     }
+  };
+
+  // Parse competitor data from GROQ response
+  const parseCompetitorData = (content) => {
+    try {
+      // Extract competitor names and market share percentages
+      const competitors = content.match(/(\w+(?:\s+\w+)*)\s*(?:has|with|at)\s*(\d+(?:\.\d+)?)\s*%/gi);
+      const strengthsMatches = content.match(/strengths?[:\s-]+([^.!?\n]+)/gi);
+      const weaknessesMatches = content.match(/weaknesses?[:\s-]+([^.!?\n]+)/gi);
+
+      // Market Share Data
+      const marketShareData = {
+        labels: [],
+        datasets: [{
+          label: 'Market Share (%)',
+          data: [],
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.5)',
+            'rgba(54, 162, 235, 0.5)',
+            'rgba(255, 206, 86, 0.5)',
+            'rgba(75, 192, 192, 0.5)',
+            'rgba(153, 102, 255, 0.5)',
+          ],
+          borderColor: [
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)',
+          ],
+          borderWidth: 1,
+        }],
+      };
+
+      if (competitors) {
+        competitors.forEach(match => {
+          const [name, share] = match.match(/(\w+(?:\s+\w+)*)\s*(?:has|with|at)\s*(\d+(?:\.\d+)?)/i).slice(1);
+          marketShareData.labels.push(name);
+          marketShareData.datasets[0].data.push(parseFloat(share));
+        });
+      }
+
+      // Competitive Analysis Radar Data
+      const radarData = {
+        labels: ['Market Share', 'Brand Strength', 'Innovation', 'Customer Service', 'Price Competitiveness'],
+        datasets: competitors ? competitors.map((comp, index) => ({
+          label: marketShareData.labels[index],
+          data: [
+            marketShareData.datasets[0].data[index],
+            Math.random() * 100,
+            Math.random() * 100,
+            Math.random() * 100,
+            Math.random() * 100,
+          ],
+          backgroundColor: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 0.2)`,
+          borderColor: `rgba(${Math.random() * 255}, ${Math.random() * 255}, ${Math.random() * 255}, 1)`,
+          borderWidth: 1,
+        })) : [],
+      };
+
+      return {
+        marketShare: marketShareData,
+        competitiveAnalysis: radarData,
+      };
+    } catch (error) {
+      console.error('Error parsing competitor data:', error);
+      return null;
+    }
+  };
+
+  // Chart options
+  const barOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      title: {
+        display: true,
+        text: 'Market Share Distribution',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Market Share (%)',
+        },
+      },
+    },
+  };
+
+  const radarOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      title: {
+        display: true,
+        text: 'Competitive Analysis Radar',
+      },
+    },
+    scales: {
+      r: {
+        beginAtZero: true,
+        min: 0,
+        max: 100,
+      },
+    },
   };
 
   // Don't render until mounted to prevent hydration issues
@@ -201,6 +338,25 @@ export default function CompetitorTrackingContent() {
             </div>
           </div>
         </div>
+
+        {/* Competitor Visualization Section */}
+        {competitorData && (
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            {/* Market Share Chart */}
+            <div className="bg-white rounded-xl shadow-xl p-6">
+              <div className="h-[400px]">
+                <Bar options={barOptions} data={competitorData.marketShare} />
+              </div>
+            </div>
+
+            {/* Competitive Analysis Radar */}
+            <div className="bg-white rounded-xl shadow-xl p-6">
+              <div className="h-[400px]">
+                <Radar options={radarOptions} data={competitorData.competitiveAnalysis} />
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </main>
   );

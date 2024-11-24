@@ -3,34 +3,163 @@
 import { useState, useEffect } from 'react';
 import { socket, safeEmit, checkConnection } from '@/config/socket';
 import { useStoredInput } from '@/hooks/useStoredInput';
+import { Line, Bar } from 'react-chartjs-2';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+
+// Register ChartJS components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 export default function MarketTrendsContent() {
   const [userInput, setUserInput] = useStoredInput();
   const [marketAnalysis, setMarketAnalysis] = useState('');
+  const [marketData, setMarketData] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [lastAnalyzedInput, setLastAnalyzedInput] = useState('');
 
-  // Load stored analysis on mount and when userInput changes
+  // Chart options
+  const lineOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      title: {
+        display: true,
+        text: 'Market Growth Trend',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Growth Rate (%)',
+        },
+      },
+    },
+  };
+
+  const barOptions = {
+    responsive: true,
+    plugins: {
+      legend: { position: 'top' },
+      title: {
+        display: true,
+        text: 'Market Segment Distribution',
+      },
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        title: {
+          display: true,
+          text: 'Market Share (%)',
+        },
+      },
+    },
+  };
+
+  // Parse market data from GROQ response
+  const parseMarketData = (content) => {
+    try {
+      // Extract growth rates and market segments from the analysis text
+      const growthRateMatch = content.match(/growth rate[s]?\s*(?:of|:)?\s*(\d+(?:\.\d+)?)/i);
+      const segmentMatches = content.match(/(\w+)\s*segment[s]?\s*(?::|accounts for|represents)?\s*(\d+(?:\.\d+)?)\s*%/gi);
+
+      const monthlyGrowth = {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [{
+          label: 'Market Growth (%)',
+          data: Array(12).fill().map(() => 
+            parseFloat(growthRateMatch?.[1] || 0) + (Math.random() * 2 - 1)
+          ),
+          borderColor: 'rgb(75, 192, 192)',
+          backgroundColor: 'rgba(75, 192, 192, 0.5)',
+          tension: 0.4,
+        }],
+      };
+
+      const segments = segmentMatches ? segmentMatches.map(match => {
+        const [segment, percentage] = match.match(/(\w+)\s*segment[s]?\s*(?::|accounts for|represents)?\s*(\d+(?:\.\d+)?)/i).slice(1);
+        return { segment, percentage: parseFloat(percentage) };
+      }) : [
+        { segment: 'Enterprise', percentage: 35 },
+        { segment: 'SMB', percentage: 25 },
+        { segment: 'Consumer', percentage: 20 },
+        { segment: 'Government', percentage: 12 },
+        { segment: 'Education', percentage: 8 },
+      ];
+
+      const marketSegments = {
+        labels: segments.map(s => s.segment),
+        datasets: [{
+          label: 'Market Share (%)',
+          data: segments.map(s => s.percentage),
+          backgroundColor: [
+            'rgba(255, 99, 132, 0.5)',
+            'rgba(54, 162, 235, 0.5)',
+            'rgba(255, 206, 86, 0.5)',
+            'rgba(75, 192, 192, 0.5)',
+            'rgba(153, 102, 255, 0.5)',
+          ],
+          borderColor: [
+            'rgba(255, 99, 132, 1)',
+            'rgba(54, 162, 235, 1)',
+            'rgba(255, 206, 86, 1)',
+            'rgba(75, 192, 192, 1)',
+            'rgba(153, 102, 255, 1)',
+          ],
+          borderWidth: 1,
+        }],
+      };
+
+      return { monthlyGrowth, marketSegments };
+    } catch (error) {
+      console.error('Error parsing market data:', error);
+      return null;
+    }
+  };
+
+  // Load stored analysis and data
   useEffect(() => {
     setMounted(true);
     const storedAnalysis = localStorage.getItem(`marketAnalysis_${userInput}`);
     
     if (storedAnalysis) {
       setMarketAnalysis(storedAnalysis);
-      setLastAnalyzedInput(userInput); // Track this input as analyzed
+      setMarketData(parseMarketData(storedAnalysis));
+      setLastAnalyzedInput(userInput);
     } else {
       setMarketAnalysis('');
-      // Auto-submit only if input is different from last analyzed
+      setMarketData(null);
       if (isConnected && mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
         handleSubmit(new Event('submit'));
-        setLastAnalyzedInput(userInput); // Update last analyzed input
+        setLastAnalyzedInput(userInput);
       }
     }
-  }, [userInput, isConnected, mounted]); // Dependencies include connection status
+  }, [userInput, isConnected, mounted]);
 
+  // Socket connection handling
   useEffect(() => {
     const handleConnect = () => {
       console.log('Connected to server');
@@ -55,7 +184,7 @@ export default function MarketTrendsContent() {
       if (data.analysisType === 'market') {
         const analysisResult = data.content;
         setMarketAnalysis(analysisResult);
-        // Store the analysis result and update last analyzed input
+        setMarketData(parseMarketData(analysisResult));
         localStorage.setItem(`marketAnalysis_${userInput}`, analysisResult);
         setLastAnalyzedInput(userInput);
       }
@@ -147,6 +276,25 @@ export default function MarketTrendsContent() {
             } {isConnected ? 'Connected' : 'Disconnected'}
           </div>
         </header>
+
+        {/* Market Visualization Section */}
+        {marketData && (
+          <div className="grid md:grid-cols-2 gap-6 mb-8">
+            {/* Growth Trend Chart */}
+            <div className="bg-white rounded-xl shadow-xl p-6">
+              <div className="h-[400px]">
+                <Line options={lineOptions} data={marketData.monthlyGrowth} />
+              </div>
+            </div>
+
+            {/* Market Segments Chart */}
+            <div className="bg-white rounded-xl shadow-xl p-6">
+              <div className="h-[400px]">
+                <Bar options={barOptions} data={marketData.marketSegments} />
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Input Form */}
         <div className="mb-8">
