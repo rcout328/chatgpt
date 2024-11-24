@@ -128,28 +128,20 @@ export default function CompetitorTrackingContent() {
 
     try {
       await safeEmit('send_message', {
-        message: `Perform a comprehensive competitor analysis for this business: ${userInput}. 
-        Please analyze:
+        message: `Perform a detailed competitor analysis for the business: ${userInput}. 
+        in this don't genrate **Market Analysis for AI SaaS Website** like this ** pattern in output
+        Please analyze and provide insights on the following aspects:
         1. Direct Competitors
-           - Key market players
-           - Market share analysis
-           - Competitive positioning
-           - Core offerings
+        • Identify key players in the market and their competitive in this positioning.
+        • Assess their market share and core offerings.
         2. Competitor Strengths
-           - Unique selling propositions
-           - Market advantages
-           - Resource capabilities
-           - Brand reputation
+        • Highlight unique selling propositions, market advantages, resource capabilities, and brand reputation.
         3. Competitor Weaknesses
-           - Service gaps
-           - Market limitations
-           - Operational challenges
-           - Customer pain points
+        • Identify service gaps, operational challenges, market limitations, and common customer pain points.
         4. Strategic Analysis
-           - Pricing strategies
-           - Marketing approaches
-           - Distribution channels
-           - Growth tactics`,
+        • Evaluate pricing strategies, marketing approaches, distribution channels, and growth tactics.
+
+        Focus on delivering actionable insights and recommendations tailored to understanding the competitive landscape for this business.`,
         agent: 'MarketInsightCEO',
         analysisType: 'competitor'
       });

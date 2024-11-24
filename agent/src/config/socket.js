@@ -16,6 +16,7 @@ const socket = io(SOCKET_URL, {
     }
 });
 
+// Connection event handlers
 socket.on('connect', () => {
     console.log('Connected to server');
 });
@@ -33,4 +34,45 @@ socket.on('disconnect', (reason) => {
     }
 });
 
-export { socket }; 
+// Safe emit function with retry mechanism
+const safeEmit = async (event, data, maxRetries = 3) => {
+    return new Promise((resolve, reject) => {
+        let retries = 0;
+
+        const tryEmit = () => {
+            if (!socket.connected) {
+                if (retries < maxRetries) {
+                    retries++;
+                    console.log(`Retry attempt ${retries}/${maxRetries}`);
+                    setTimeout(tryEmit, 1000 * retries);
+                    return;
+                }
+                reject(new Error('Failed to connect to server'));
+                return;
+            }
+
+            socket.emit(event, data, (response) => {
+                if (response?.error) {
+                    reject(new Error(response.error));
+                } else {
+                    resolve(response);
+                }
+            });
+
+            // Set a timeout for the response
+            setTimeout(() => {
+                reject(new Error('Request timed out'));
+            }, 30000); // 30 seconds timeout
+        };
+
+        tryEmit();
+    });
+};
+
+// Check connection status
+const checkConnection = () => {
+    return socket.connected;
+};
+
+// Export the socket instance and helper functions
+export { socket, safeEmit, checkConnection }; 

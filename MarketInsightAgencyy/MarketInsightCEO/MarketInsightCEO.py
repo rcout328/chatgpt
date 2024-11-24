@@ -4,15 +4,13 @@ from openai import AsyncOpenAI
 import os
 from dotenv import load_dotenv
 from pathlib import Path
-from groq import Groq
 
 # Get the current directory and load the .env file from there
 current_dir = Path(__file__).parent.parent
 env_path = current_dir / '.env'
 load_dotenv(dotenv_path=env_path)
 
-# Initialize clients
-groq_client = Groq(api_key=os.getenv('GROQ_API_KEY'))
+# Initialize OpenAI client
 api_key = os.getenv('OPENAI_API_KEY')
 if not api_key:
     raise ValueError("OPENAI_API_KEY not found in environment variables")
@@ -30,32 +28,45 @@ class MarketInsightCEO(Agent):
             max_prompt_tokens=int(os.getenv('MAX_TOKENS', 4000))
         )
 
-    async def process_message(self, message):
+    async def process_message(self, message, context=None):
         """Process incoming messages and generate responses"""
         try:
-            # Create the messages array
-            messages = [{"role": "user", "content": message}]
-            
-            # Make the API call synchronously (Groq's Python client doesn't support async yet)
-            response = groq_client.chat.completions.create(
-                messages=messages,
-                model="llama-3.1-70b-versatile",
-                temperature=self.temperature,
-                max_tokens=self.max_promptsolve this _tokens,
-                stream=False
-            )
+            # If this is a chat message with context
+            if context and isinstance(context, dict):
+                analysis_type = context.get('analysisType')
+                current_analysis = context.get('currentAnalysis')
+                business_input = context.get('businessInput')
+                chat_history = context.get('chatHistory', [])
 
-            # Extract the response content
-            if response and response.choices and len(response.choices) > 0:
+                # Construct a prompt that includes the context
+                prompt = f"""As the Market Insight CEO, I am reviewing the {analysis_type} analysis for this business: {business_input}
+
+Analysis Results:
+{current_analysis}
+
+Chat History:
+{self._format_chat_history(chat_history)}
+
+User Question: {message}
+
+Please provide a detailed response addressing the user's question in the context of the analysis results."""
+
+                # Process the message with the full context
+                response = await self._process_with_context(prompt)
                 return {
                     'type': 'success',
-                    'content': response.choices[0].message.content,
-                    'agent': self.name
+                    'content': response,
+                    'agent': self.name,
+                    'analysisType': 'chat'
                 }
+
+            # For regular analysis requests
             else:
+                # Process the message normally
+                response = await super().process_message(message)
                 return {
-                    'type': 'error',
-                    'content': 'No response generated',
+                    'type': 'success',
+                    'content': response,
                     'agent': self.name
                 }
 
@@ -66,6 +77,29 @@ class MarketInsightCEO(Agent):
                 'content': f"Error processing message: {str(e)}",
                 'agent': self.name
             }
+
+    def _format_chat_history(self, chat_history):
+        """Format chat history for context"""
+        if not chat_history:
+            return "No previous messages"
+        
+        formatted_history = []
+        for msg in chat_history:
+            role = msg.get('role', 'unknown')
+            content = msg.get('content', '')
+            formatted_history.append(f"{role.capitalize()}: {content}")
+        
+        return "\n".join(formatted_history)
+
+    async def _process_with_context(self, prompt):
+        """Process a message with full context using the agency's capabilities"""
+        try:
+            # Use the agent's built-in processing capabilities
+            response = await super().process_message(prompt)
+            return response
+        except Exception as e:
+            print(f"Error in _process_with_context: {str(e)}")
+            raise
 
     async def handle_tool_error(self, error):
         """Handle any tool execution errors"""

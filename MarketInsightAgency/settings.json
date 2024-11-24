@@ -168,7 +168,7 @@
                                         "$ref": "#/$defs/recipient"
                                     }
                                 ],
-                                "description": "CompetitorTrackingAgent: This agent tracks competitor activities using AI-powered analysis.\nSentimentAnalysisAgent: This agent processes news and social media sentiment using NLP libraries like NLTK and spaCy.\nICPGeneratorAgent: This agent creates customer profiles using CRM data and demographic databases with pandas and scikit-learn.\nFeedbackCollectorAgent: This agent processes user feedback through APIs like Intercom and text analysis tools.\nMarketAnalysisAgent: This agent analyzes market data using AI and search results.\nReportingAgent: This agent generates reports and visualizations using libraries like Jinja2 and matplotlib, aggregating data from all other agents.\nDataCollector: An agent that performs Google searches using the SERP API, scrapes data from specified websites, and presents the data to the user.\nBrowsingAgent: This agent performs web searches and browsing using SerpAPI and Selenium.\n"
+                                "description": "CompetitorTrackingAgent: This agent tracks competitor activities using AI-powered analysis.\nSentimentAnalysisAgent: This agent processes news and social media sentiment using NLP libraries like NLTK and spaCy.\nICPGeneratorAgent: This agent creates customer profiles using CRM data and demographic databases with pandas and scikit-learn.\nFeedbackCollectorAgent: This agent processes user feedback through APIs like Intercom and text analysis tools.\nMarketAnalysisAgent: This agent analyzes market data using AI and search results.\nReportingAgent: This agent generates reports and visualizations using libraries like Jinja2 and matplotlib, aggregating data from all other agents.\nDataCollector: Agent responsible for collecting data from various sources including web scraping.\nBrowsingAgent: This agent performs web searches and browsing using SerpAPI and Selenium.\n"
                             },
                             "message": {
                                 "description": "Specify the task required for the recipient agent to complete. Focus on clarifying what the task entails, rather than providing exact instructions.",
@@ -1727,7 +1727,7 @@
         "description": "Agent responsible for collecting data from various sources including web scraping.",
         "instructions": "## MarketInsightAgency Manifesto\n\nThe mission of MarketInsightAgency is to provide comprehensive market analysis and insights by leveraging advanced AI-driven agents. These agents will work collaboratively to analyze market trends, track competitors, assess sentiment, generate customer profiles, collect feedback, and produce detailed reports. If any API fails, the agents will utilize GPT-based datasets to generate the necessary data. The ultimate goal is to empower businesses with actionable insights for strategic decision-making.\n\n### Goals\n- Deliver accurate and timely market trend analysis.\n- Monitor competitors effectively and provide actionable insights.\n- Assess sentiment from news and social media platforms.\n- Generate detailed customer profiles using CRM and demographic data.\n- Collect and analyze user feedback efficiently.\n- Identify market opportunities through economic data analysis.\n- Produce comprehensive reports and visualizations for strategic decisions.\n\n### Working Environment\nThe agency operates in a dynamic environment where agents utilize a variety of tools and libraries, including pandas, scikit-learn, BeautifulSoup, Scrapy, NLTK, spaCy, Jinja2, and matplotlib. In cases where APIs are unavailable, GPT-based datasets will be used to ensure continuous data flow and analysis.\n\n# Data Collector Agent Instructions\n\nYou are a Data Collector agent responsible for gathering data from various sources. Your primary role is to collect, validate, and prepare data for analysis.\n\n## Primary Responsibilities:\n1. Collect data from web sources using web scraping tools\n2. Validate collected data for accuracy and completeness\n3. Format data according to specified requirements\n4. Ensure data quality and consistency\n5. Handle data collection errors appropriately\n\n## Process Workflow:\n1. Receive data collection requests\n2. Identify appropriate data sources\n3. Use web scraping tools to gather data\n4. Validate and clean collected data\n5. Format data for analysis\n6. Report any issues or errors encountered ",
         "metadata": {},
-        "model": "gpt-4o-2024-08-06",
+        "model": "gpt-4-1106-preview",
         "name": "DataCollector",
         "object": "assistant",
         "tools": [
@@ -1763,7 +1763,7 @@
             }
         ],
         "response_format": "auto",
-        "temperature": 0.3,
+        "temperature": 0.7,
         "tool_resources": {
             "code_interpreter": {
                 "file_ids": []
