@@ -17,6 +17,7 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
+import ChatDialog from '@/components/ChatDialog';
 
 // Register ChartJS components
 ChartJS.register(
@@ -243,7 +244,7 @@ export default function CompetitorTrackingContent() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <header className="text-center mb-8">
+        <header className="text-center mb-8 relative">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             Competitor Tracking Analysis
           </h1>
@@ -252,6 +253,9 @@ export default function CompetitorTrackingContent() {
               <span className="text-green-500">●</span> : 
               <span className="text-red-500">●</span>
             } {isConnected ? 'Connected' : 'Disconnected'}
+          </div>
+          <div className="absolute right-0 top-0">
+            <ChatDialog currentPage="competitorTracking" />
           </div>
         </header>
 

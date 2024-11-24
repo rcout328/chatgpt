@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { socket, safeEmit, checkConnection } from '@/config/socket';
 import { useStoredInput } from '@/hooks/useStoredInput';
+import ChatDialog from '@/components/ChatDialog';
 
 export default function FeedbackCollectionContent() {
   const [userInput, setUserInput] = useStoredInput();
@@ -199,6 +200,9 @@ export default function FeedbackCollectionContent() {
               )}
             </div>
           </div>
+        </div>
+        <div className="absolute right-0 top-0">
+          <ChatDialog currentPage="feedbackCollection" />
         </div>
       </div>
     </main>

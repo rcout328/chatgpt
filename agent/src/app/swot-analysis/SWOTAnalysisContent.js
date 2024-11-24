@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { socket, safeEmit, checkConnection } from '@/config/socket';
 import { useStoredInput } from '@/hooks/useStoredInput';
+import ChatDialog from '@/components/ChatDialog'; // Added ChatDialog import
 
 export default function SWOTAnalysisContent() {
   const [userInput, setUserInput] = useStoredInput();
@@ -199,6 +200,10 @@ export default function SWOTAnalysisContent() {
               )}
             </div>
           </div>
+        </div>
+
+        <div className="absolute right-0 top-0">
+          <ChatDialog currentPage="swotAnalysis" /> {/* Added ChatDialog component */}
         </div>
       </div>
     </main>

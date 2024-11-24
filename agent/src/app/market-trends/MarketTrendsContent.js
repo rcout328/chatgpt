@@ -38,7 +38,6 @@ export default function MarketTrendsContent() {
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
   const [lastAnalyzedInput, setLastAnalyzedInput] = useState('');
-  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Chart options
   const lineOptions = {
@@ -278,19 +277,10 @@ export default function MarketTrendsContent() {
               <span className="text-red-500">●</span>
             } {isConnected ? 'Connected' : 'Disconnected'}
           </div>
-          <button
-            onClick={() => setIsChatOpen(true)}
-            className="absolute right-0 top-0 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
-          >
-            <span>💬</span>
-            <span>Chat with Agent</span>
-          </button>
+          <div className="absolute right-0 top-0">
+            <ChatDialog currentPage="marketTrends" />
+          </div>
         </header>
-
-        <ChatDialog
-          isOpen={isChatOpen}
-          onClose={() => setIsChatOpen(false)}
-        />
 
         {/* Market Visualization Section */}
         {marketData && (

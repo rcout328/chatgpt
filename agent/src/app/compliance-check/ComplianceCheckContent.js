@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { socket, safeEmit, checkConnection } from '@/config/socket';
 import { useStoredInput } from '@/hooks/useStoredInput';
+import ChatDialog from '@/components/ChatDialog';
 
 export default function ComplianceCheckContent() {
   const [userInput, setUserInput] = useStoredInput();
@@ -144,6 +145,9 @@ export default function ComplianceCheckContent() {
               <span className="text-green-500">●</span> : 
               <span className="text-red-500">●</span>
             } {isConnected ? 'Connected' : 'Disconnected'}
+          </div>
+          <div className="absolute right-0 top-0">
+            <ChatDialog currentPage="complianceCheck" />
           </div>
         </header>
 

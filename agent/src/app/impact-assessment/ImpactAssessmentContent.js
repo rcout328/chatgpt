@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { socket, safeEmit, checkConnection } from '@/config/socket';
 import { useStoredInput } from '@/hooks/useStoredInput';
+import ChatDialog from '@/components/ChatDialog'; // Importing ChatDialog component
 
 export default function ImpactAssessmentContent() {
   const [userInput, setUserInput] = useStoredInput();
@@ -200,6 +201,11 @@ export default function ImpactAssessmentContent() {
               )}
             </div>
           </div>
+        </div>
+
+        {/* Chat Dialog Component */}
+        <div className="absolute right-0 top-0">
+          <ChatDialog currentPage="impactAssessment" />
         </div>
       </div>
     </main>

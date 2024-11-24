@@ -74,6 +74,64 @@ class MarketInsightAgency(Agency):
                 'agent': 'System'
             }
 
+    def demo_gradio(self):
+        """Create a Gradio interface with custom JavaScript for handling default messages"""
+        import gradio as gr
+        
+        def chat_response(message, history):
+            # Process the message through the agency
+            response = next(self.chat(message))
+            return response.get('content', 'No response')
+
+        # Create the Gradio interface
+        with gr.Blocks(css="footer {display: none !important;}") as demo:
+            chatbot = gr.Chatbot(height=450)
+            msg = gr.Textbox(
+                show_label=False,
+                placeholder="Enter text and press enter",
+            )
+            clear = gr.Button("Clear")
+
+            # Add JavaScript to handle the default message
+            demo.load(None, None, _js="""
+                function() {
+                    window.addEventListener('message', function(event) {
+                        if (event.data && event.data.type === 'setInput') {
+                            const textbox = document.querySelector('textarea');
+                            if (textbox) {
+                                textbox.value = event.data.message;
+                                // Simulate Enter key press
+                                const enterEvent = new KeyboardEvent('keydown', {
+                                    key: 'Enter',
+                                    code: 'Enter',
+                                    keyCode: 13,
+                                    which: 13,
+                                    bubbles: true
+                                });
+                                textbox.dispatchEvent(enterEvent);
+                            }
+                        }
+                    });
+                }
+            """)
+
+            def user(user_message, history):
+                return "", history + [[user_message, None]]
+
+            def bot(history):
+                user_message = history[-1][0]
+                bot_message = chat_response(user_message, history)
+                history[-1][1] = bot_message
+                return history
+
+            msg.submit(user, [msg, chatbot], [msg, chatbot], queue=False).then(
+                bot, chatbot, chatbot
+            )
+            clear.click(lambda: None, None, chatbot, queue=False)
+
+        # Launch the interface
+        demo.launch(share=False)
+
 # Create agency function
 def create_agency():
     # Get the current directory and load the .env file from there
@@ -133,3 +191,6 @@ __all__ = ['MarketInsightAgency', 'create_agency', 'agency']
 # Export directly for explicit imports
 MarketInsightAgency = MarketInsightAgency
 create_agency = create_agency
+
+if __name__ == '__main__':
+    agency.demo_gradio()

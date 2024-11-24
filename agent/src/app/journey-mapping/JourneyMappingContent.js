@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { socket, safeEmit, checkConnection } from '@/config/socket';
 import { useStoredInput } from '@/hooks/useStoredInput';
+import ChatDialog from '@/components/ChatDialog'; // Importing ChatDialog component
 
 export default function JourneyMappingContent() {
   const [userInput, setUserInput] = useStoredInput();
@@ -199,6 +200,9 @@ export default function JourneyMappingContent() {
               )}
             </div>
           </div>
+        </div>
+        <div className="absolute right-0 top-0">
+          <ChatDialog currentPage="journeyMapping" />
         </div>
       </div>
     </main>
