@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { socket, safeEmit, checkConnection } from '@/config/socket';
 import { useStoredInput } from '@/hooks/useStoredInput';
-import ChatDialog from '@/components/ChatDialog'; // Importing ChatDialog component
+import { callGroqApi } from '@/utils/groqApi';
+import ChatDialog from '@/components/ChatDialog';
 
 export default function MarketAssessmentContent() {
   const [userInput, setUserInput] = useStoredInput();
   const [marketAssessment, setMarketAssessment] = useState('');
-  const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
@@ -21,64 +20,16 @@ export default function MarketAssessmentContent() {
     
     if (storedAnalysis) {
       setMarketAssessment(storedAnalysis);
-      setLastAnalyzedInput(userInput); // Track this input as analyzed
+      setLastAnalyzedInput(userInput);
     } else {
       setMarketAssessment('');
       // Auto-submit only if input is different from last analyzed
-      if (isConnected && mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
+      if (mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
         handleSubmit(new Event('submit'));
-        setLastAnalyzedInput(userInput); // Update last analyzed input
-      }
-    }
-  }, [userInput, isConnected, mounted]);
-
-  useEffect(() => {
-    const handleConnect = () => {
-      console.log('Connected to server');
-      setIsConnected(true);
-      setError(null);
-    };
-
-    const handleDisconnect = () => {
-      console.log('Disconnected from server');
-      setIsConnected(false);
-    };
-
-    const handleReceiveMessage = (data) => {
-      console.log('Received message:', data);
-      setIsLoading(false);
-      
-      if (data.type === 'error') {
-        setError(data.content);
-        return;
-      }
-
-      if (data.analysisType === 'marketAssessment') {
-        const analysisResult = data.content;
-        setMarketAssessment(analysisResult);
-        // Store the analysis result and update last analyzed input
-        localStorage.setItem(`marketAssessment_${userInput}`, analysisResult);
         setLastAnalyzedInput(userInput);
       }
-    };
-
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
-    socket.on('receive_message', handleReceiveMessage);
-    socket.on('connect_error', (error) => {
-      console.error('Connection error:', error);
-      setError('Connection error. Retrying...');
-    });
-
-    setIsConnected(checkConnection());
-
-    return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
-      socket.off('receive_message', handleReceiveMessage);
-      socket.off('connect_error');
-    };
-  }, [userInput]);
+    }
+  }, [userInput, mounted]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,63 +39,69 @@ export default function MarketAssessmentContent() {
     const storedAnalysis = localStorage.getItem(`marketAssessment_${userInput}`);
     if (storedAnalysis && userInput === lastAnalyzedInput) {
       setMarketAssessment(storedAnalysis);
-      return; // Don't proceed with API call if we have stored results for this input
+      return;
     }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      await safeEmit('send_message', {
-        message: `Analyze the market size and potential for this business: ${userInput}. 
-        Please provide:
-        1. Total addressable market (TAM)
-           - Market size calculation
-           - Growth potential
-           - Market segments
-           - Geographic scope
-        2. Serviceable addressable market (SAM)
-           - Target market definition
-           - Market accessibility
-           - Customer segments
-           - Market reach
-        3. Serviceable obtainable market (SOM)
-           - Realistic market share
-           - Competition analysis
-           - Market penetration
-           - Growth strategy
-        4. Market Dynamics
-           - Market trends
-           - Entry barriers
-           - Competitive landscape
-           - Growth drivers`,
-        agent: 'MarketInsightCEO',
-        analysisType: 'marketAssessment'
-      });
+      const response = await callGroqApi([
+        {
+          role: "system",
+          content: `You are a market assessment expert. Create a detailed market assessment that covers all key aspects of the market opportunity. Focus on providing specific, actionable insights about market size, potential, and strategy.`
+        },
+        {
+          role: "user",
+          content: `Analyze the market size and potential for this business: ${userInput}. 
+          Please provide:
+          1. Total addressable market (TAM)
+             - Market size calculation
+             - Growth potential
+             - Market segments
+             - Geographic scope
+          2. Serviceable addressable market (SAM)
+             - Target market definition
+             - Market accessibility
+             - Customer segments
+             - Market reach
+          3. Serviceable obtainable market (SOM)
+             - Realistic market share
+             - Competition analysis
+             - Market penetration
+             - Growth strategy
+          4. Market Dynamics
+             - Market trends
+             - Entry barriers
+             - Competitive landscape
+             - Growth drivers
+          
+          Format the response in a clear, structured manner with specific details for each component.`
+        }
+      ]);
 
+      setMarketAssessment(response);
+      localStorage.setItem(`marketAssessment_${userInput}`, response);
+      setLastAnalyzedInput(userInput);
     } catch (error) {
-      console.error('Error sending message:', error);
-      setError('Failed to send analysis request. Please try again.');
+      console.error('Error:', error);
+      setError('Failed to get analysis. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
 
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <header className="text-center mb-8">
+        <header className="text-center mb-8 relative">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             Market Assessment Analysis
           </h1>
-          <div className="text-sm text-gray-500">
-            {isConnected ? 
-              <span className="text-green-500">●</span> : 
-              <span className="text-red-500">●</span>
-            } {isConnected ? 'Connected' : 'Disconnected'}
+          <div className="absolute right-0 top-0">
+            <ChatDialog currentPage="marketAssessment" />
           </div>
         </header>
 
@@ -157,14 +114,14 @@ export default function MarketAssessmentContent() {
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder="Enter your business details for market assessment..."
                 className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 h-32 resize-none text-black"
-                disabled={!isConnected || isLoading}
+                disabled={isLoading}
               />
             </div>
             <button
               type="submit"
-              disabled={!isConnected || isLoading}
+              disabled={isLoading || !userInput.trim()}
               className={`w-full p-4 rounded-lg font-medium transition-colors ${
-                isConnected && !isLoading
+                !isLoading && userInput.trim()
                   ? 'bg-blue-500 hover:bg-blue-600 text-white'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
@@ -200,9 +157,6 @@ export default function MarketAssessmentContent() {
               )}
             </div>
           </div>
-        </div>
-        <div className="absolute right-0 top-0">
-          <ChatDialog currentPage="marketAssessment" />
         </div>
       </div>
     </main>

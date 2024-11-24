@@ -1,14 +1,13 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { socket, safeEmit, checkConnection } from '@/config/socket';
 import { useStoredInput } from '@/hooks/useStoredInput';
-import ChatDialog from '@/components/ChatDialog'; // Importing ChatDialog component
+import { callGroqApi } from '@/utils/groqApi';
+import ChatDialog from '@/components/ChatDialog';
 
 export default function JourneyMappingContent() {
   const [userInput, setUserInput] = useStoredInput();
   const [journeyMapping, setJourneyMapping] = useState('');
-  const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
@@ -21,64 +20,16 @@ export default function JourneyMappingContent() {
     
     if (storedAnalysis) {
       setJourneyMapping(storedAnalysis);
-      setLastAnalyzedInput(userInput); // Track this input as analyzed
+      setLastAnalyzedInput(userInput);
     } else {
       setJourneyMapping('');
       // Auto-submit only if input is different from last analyzed
-      if (isConnected && mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
+      if (mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
         handleSubmit(new Event('submit'));
-        setLastAnalyzedInput(userInput); // Update last analyzed input
-      }
-    }
-  }, [userInput, isConnected, mounted]);
-
-  useEffect(() => {
-    const handleConnect = () => {
-      console.log('Connected to server');
-      setIsConnected(true);
-      setError(null);
-    };
-
-    const handleDisconnect = () => {
-      console.log('Disconnected from server');
-      setIsConnected(false);
-    };
-
-    const handleReceiveMessage = (data) => {
-      console.log('Received message:', data);
-      setIsLoading(false);
-      
-      if (data.type === 'error') {
-        setError(data.content);
-        return;
-      }
-
-      if (data.analysisType === 'journey') {
-        const analysisResult = data.content;
-        setJourneyMapping(analysisResult);
-        // Store the analysis result and update last analyzed input
-        localStorage.setItem(`journeyMapping_${userInput}`, analysisResult);
         setLastAnalyzedInput(userInput);
       }
-    };
-
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
-    socket.on('receive_message', handleReceiveMessage);
-    socket.on('connect_error', (error) => {
-      console.error('Connection error:', error);
-      setError('Connection error. Retrying...');
-    });
-
-    setIsConnected(checkConnection());
-
-    return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
-      socket.off('receive_message', handleReceiveMessage);
-      socket.off('connect_error');
-    };
-  }, [userInput]);
+    }
+  }, [userInput, mounted]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,63 +39,69 @@ export default function JourneyMappingContent() {
     const storedAnalysis = localStorage.getItem(`journeyMapping_${userInput}`);
     if (storedAnalysis && userInput === lastAnalyzedInput) {
       setJourneyMapping(storedAnalysis);
-      return; // Don't proceed with API call if we have stored results for this input
+      return;
     }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      await safeEmit('send_message', {
-        message: `Create a comprehensive customer journey map for this business: ${userInput}. 
-        Please analyze:
-        1. Customer Touchpoints
-           - Awareness stage interactions
-           - Consideration phase touchpoints
-           - Purchase decision moments
-           - Post-purchase engagement
-        2. Customer Experience
-           - Pain points and challenges
-           - Moments of delight
-           - Service gaps
-           - Improvement opportunities
-        3. Journey Stages
-           - Pre-purchase research
-           - Decision-making process
-           - Purchase experience
-           - Post-purchase support
-        4. Channel Integration
-           - Online presence
-           - Physical touchpoints
-           - Communication channels
-           - Support systems`,
-        agent: 'MarketInsightCEO',
-        analysisType: 'journey'
-      });
+      const response = await callGroqApi([
+        {
+          role: "system",
+          content: `You are a customer journey mapping expert. Create a detailed journey map analysis that covers all key touchpoints and interactions. Focus on providing specific, actionable insights about the customer journey.`
+        },
+        {
+          role: "user",
+          content: `Create a detailed customer journey map for this business: ${userInput}. 
+          Please analyze and provide:
+          1. Pre-Purchase Journey
+             - Awareness stage touchpoints
+             - Consideration phase interactions
+             - Decision-making triggers
+             - Information gathering channels
+          2. Purchase Experience
+             - Purchase process steps
+             - Key decision points
+             - Interaction channels
+             - Pain points and friction
+          3. Post-Purchase Journey
+             - Onboarding process
+             - Customer support interactions
+             - Feedback mechanisms
+             - Retention touchpoints
+          4. Journey Optimization
+             - Key improvement areas
+             - Enhancement opportunities
+             - Customer satisfaction drivers
+             - Loyalty building points
+          
+          Format the response in a clear, structured manner with specific details for each stage of the journey.`
+        }
+      ]);
 
+      setJourneyMapping(response);
+      localStorage.setItem(`journeyMapping_${userInput}`, response);
+      setLastAnalyzedInput(userInput);
     } catch (error) {
-      console.error('Error sending message:', error);
-      setError('Failed to send mapping request. Please try again.');
+      console.error('Error:', error);
+      setError('Failed to get analysis. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
 
-  if (!mounted) {
-    return null;
-  }
+  if (!mounted) return null;
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-gray-50 to-gray-100 p-4 md:p-8">
       <div className="max-w-7xl mx-auto">
-        <header className="text-center mb-8">
+        <header className="text-center mb-8 relative">
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
-            Journey Mapping Analysis
+            Customer Journey Mapping
           </h1>
-          <div className="text-sm text-gray-500">
-            {isConnected ? 
-              <span className="text-green-500">●</span> : 
-              <span className="text-red-500">●</span>
-            } {isConnected ? 'Connected' : 'Disconnected'}
+          <div className="absolute right-0 top-0">
+            <ChatDialog currentPage="journeyMapping" />
           </div>
         </header>
 
@@ -157,19 +114,19 @@ export default function JourneyMappingContent() {
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder="Enter your business details for journey mapping..."
                 className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 h-32 resize-none text-black"
-                disabled={!isConnected || isLoading}
+                disabled={isLoading}
               />
             </div>
             <button
               type="submit"
-              disabled={!isConnected || isLoading}
+              disabled={isLoading || !userInput.trim()}
               className={`w-full p-4 rounded-lg font-medium transition-colors ${
-                isConnected && !isLoading
+                !isLoading && userInput.trim()
                   ? 'bg-blue-500 hover:bg-blue-600 text-white'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
             >
-              {isLoading ? 'Mapping...' : 'Create Journey Map'}
+              {isLoading ? 'Analyzing...' : 'Create Journey Map'}
             </button>
           </form>
         </div>
@@ -200,9 +157,6 @@ export default function JourneyMappingContent() {
               )}
             </div>
           </div>
-        </div>
-        <div className="absolute right-0 top-0">
-          <ChatDialog currentPage="journeyMapping" />
         </div>
       </div>
     </main>

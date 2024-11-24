@@ -176,32 +176,39 @@ export default function MarketTrendsContent() {
     setError(null);
 
     try {
-      const messages = [{
-        role: "user",
-        content: `Analyze market trends for this business: ${userInput}. 
-        Please provide:
-        1. Market Trends
-           - Current market dynamics
-           - Growth rates with specific percentages
-           - Market segments with share percentages
-           - Industry-specific developments
-        2. Market Size
-           - Total addressable market size
-           - Market growth rate
-           - Market segments distribution
-           - Geographic distribution
-        3. Target Audience
-           - Customer demographics
-           - Customer needs and preferences
-           - Market penetration opportunities
-           - Customer acquisition channels`
-      }];
+      const response = await callGroqApi([
+        {
+          role: "system",
+          content: `You are a market analysis expert. Analyze market trends and provide detailed insights with specific numbers and percentages that can be visualized. Focus on providing clear, quantifiable data points for market segments and growth rates.`
+        },
+        {
+          role: "user",
+          content: `Analyze market trends for this business: ${userInput}. 
+          Please provide a detailed analysis covering:
+          1. Market Trends
+             - Current market dynamics
+             - Growth rates with specific percentages
+             - Market segments with share percentages
+             - Industry-specific developments
+          2. Market Size
+             - Total addressable market size
+             - Market growth rate
+             - Market segments distribution
+             - Geographic distribution
+          3. Target Audience
+             - Customer demographics
+             - Customer needs and preferences
+             - Market penetration opportunities
+             - Customer acquisition channels
+             
+          Important: Include specific percentages for market segments and growth rates that can be used for visualization.`
+        }
+      ]);
 
-      const analysisResult = await callGroqApi(messages);
-      setMarketAnalysis(analysisResult);
-      const parsedData = parseMarketData(analysisResult);
+      setMarketAnalysis(response);
+      const parsedData = parseMarketData(response);
       setMarketData(parsedData);
-      localStorage.setItem(`marketAnalysis_${userInput}`, analysisResult);
+      localStorage.setItem(`marketAnalysis_${userInput}`, response);
       setLastAnalyzedInput(userInput);
     } catch (error) {
       console.error('Error:', error);

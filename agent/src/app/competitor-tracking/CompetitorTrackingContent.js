@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { socket, safeEmit, checkConnection } from '@/config/socket';
 import { useStoredInput } from '@/hooks/useStoredInput';
 import { Line, Bar, Radar } from 'react-chartjs-2';
+import { callGroqApi } from '@/utils/groqApi';
+import ChatDialog from '@/components/ChatDialog';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -17,7 +18,6 @@ import {
   Legend,
   Filler,
 } from 'chart.js';
-import ChatDialog from '@/components/ChatDialog';
 
 // Register ChartJS components
 ChartJS.register(
@@ -37,7 +37,6 @@ export default function CompetitorTrackingContent() {
   const [userInput, setUserInput] = useStoredInput();
   const [competitorAnalysis, setCompetitorAnalysis] = useState('');
   const [competitorData, setCompetitorData] = useState(null);
-  const [isConnected, setIsConnected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [mounted, setMounted] = useState(false);
@@ -50,67 +49,18 @@ export default function CompetitorTrackingContent() {
     
     if (storedAnalysis) {
       setCompetitorAnalysis(storedAnalysis);
-      setCompetitorData(parseCompetitorData(storedAnalysis)); // Parse data immediately
-      setLastAnalyzedInput(userInput); // Track this input as analyzed
+      setCompetitorData(parseCompetitorData(storedAnalysis));
+      setLastAnalyzedInput(userInput);
     } else {
       setCompetitorAnalysis('');
       setCompetitorData(null);
       // Auto-submit only if input is different from last analyzed
-      if (isConnected && mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
+      if (mounted && userInput && !isLoading && userInput !== lastAnalyzedInput) {
         handleSubmit(new Event('submit'));
-        setLastAnalyzedInput(userInput); // Update last analyzed input
-      }
-    }
-  }, [userInput, isConnected, mounted]);
-
-  useEffect(() => {
-    const handleConnect = () => {
-      console.log('Connected to server');
-      setIsConnected(true);
-      setError(null);
-    };
-
-    const handleDisconnect = () => {
-      console.log('Disconnected from server');
-      setIsConnected(false);
-    };
-
-    const handleReceiveMessage = (data) => {
-      console.log('Received message:', data);
-      setIsLoading(false);
-      
-      if (data.type === 'error') {
-        setError(data.content);
-        return;
-      }
-
-      if (data.analysisType === 'competitor') {
-        const analysisResult = data.content;
-        setCompetitorAnalysis(analysisResult);
-        const parsedData = parseCompetitorData(analysisResult);
-        setCompetitorData(parsedData);
-        localStorage.setItem(`competitorAnalysis_${userInput}`, analysisResult);
         setLastAnalyzedInput(userInput);
       }
-    };
-
-    socket.on('connect', handleConnect);
-    socket.on('disconnect', handleDisconnect);
-    socket.on('receive_message', handleReceiveMessage);
-    socket.on('connect_error', (error) => {
-      console.error('Connection error:', error);
-      setError('Connection error. Retrying...');
-    });
-
-    setIsConnected(checkConnection());
-
-    return () => {
-      socket.off('connect', handleConnect);
-      socket.off('disconnect', handleDisconnect);
-      socket.off('receive_message', handleReceiveMessage);
-      socket.off('connect_error');
-    };
-  }, [userInput]);
+    }
+  }, [userInput, mounted]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -120,36 +70,47 @@ export default function CompetitorTrackingContent() {
     const storedAnalysis = localStorage.getItem(`competitorAnalysis_${userInput}`);
     if (storedAnalysis && userInput === lastAnalyzedInput) {
       setCompetitorAnalysis(storedAnalysis);
-      setCompetitorData(parseCompetitorData(storedAnalysis)); // Parse data immediately
-      return; // Don't proceed with API call if we have stored results for this input
+      setCompetitorData(parseCompetitorData(storedAnalysis));
+      return;
     }
 
     setIsLoading(true);
     setError(null);
 
     try {
-      await safeEmit('send_message', {
-        message: `Perform a detailed competitor analysis for the business: ${userInput}. 
-        in this don't genrate **Market Analysis for AI SaaS Website** like this ** pattern in output
-        Please analyze and provide insights on the following aspects:
-        1. Direct Competitors
-        • Identify key players in the market and their competitive in this positioning.
-        • Assess their market share and core offerings.
-        2. Competitor Strengths
-        • Highlight unique selling propositions, market advantages, resource capabilities, and brand reputation.
-        3. Competitor Weaknesses
-        • Identify service gaps, operational challenges, market limitations, and common customer pain points.
-        4. Strategic Analysis
-        • Evaluate pricing strategies, marketing approaches, distribution channels, and growth tactics.
+      const response = await callGroqApi([
+        {
+          role: "system",
+          content: `You are a competitive analysis expert. Analyze competitors and provide detailed insights with specific numbers and percentages that can be visualized. Focus on providing clear, quantifiable data points for market shares and competitive positioning.`
+        },
+        {
+          role: "user",
+          content: `Perform a detailed competitor analysis for the business: ${userInput}. 
+          Please analyze and provide insights on the following aspects:
+          1. Direct Competitors
+          • Identify key players in the market and their competitive positioning.
+          • Assess their market share (provide specific percentages) and core offerings.
+          2. Competitor Strengths
+          • Highlight unique selling propositions, market advantages, resource capabilities, and brand reputation.
+          3. Competitor Weaknesses
+          • Identify service gaps, operational challenges, market limitations, and common customer pain points.
+          4. Strategic Analysis
+          • Evaluate pricing strategies, marketing approaches, distribution channels, and growth tactics.
 
-        Focus on delivering actionable insights and recommendations tailored to understanding the competitive landscape for this business.`,
-        agent: 'MarketInsightCEO',
-        analysisType: 'competitor'
-      });
+          Important: Include specific percentages for market shares and competitive metrics that can be used for visualization.
+          Format market share data as "CompanyName has XX%" for easy parsing.`
+        }
+      ]);
 
+      setCompetitorAnalysis(response);
+      const parsedData = parseCompetitorData(response);
+      setCompetitorData(parsedData);
+      localStorage.setItem(`competitorAnalysis_${userInput}`, response);
+      setLastAnalyzedInput(userInput);
     } catch (error) {
-      console.error('Error sending message:', error);
-      setError('Failed to send analysis request. Please try again.');
+      console.error('Error:', error);
+      setError('Failed to get analysis. Please try again.');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -248,12 +209,6 @@ export default function CompetitorTrackingContent() {
           <h1 className="text-4xl font-bold text-gray-800 mb-2">
             Competitor Tracking Analysis
           </h1>
-          <div className="text-sm text-gray-500">
-            {isConnected ? 
-              <span className="text-green-500">●</span> : 
-              <span className="text-red-500">●</span>
-            } {isConnected ? 'Connected' : 'Disconnected'}
-          </div>
           <div className="absolute right-0 top-0">
             <ChatDialog currentPage="competitorTracking" />
           </div>
@@ -268,14 +223,14 @@ export default function CompetitorTrackingContent() {
                 onChange={(e) => setUserInput(e.target.value)}
                 placeholder="Enter your business details for competitor analysis..."
                 className="w-full p-4 border rounded-lg focus:ring-2 focus:ring-blue-500 h-32 resize-none text-black"
-                disabled={!isConnected || isLoading}
+                disabled={isLoading}
               />
             </div>
             <button
               type="submit"
-              disabled={!isConnected || isLoading}
+              disabled={isLoading || !userInput.trim()}
               className={`w-full p-4 rounded-lg font-medium transition-colors ${
-                isConnected && !isLoading
+                !isLoading && userInput.trim()
                   ? 'bg-blue-500 hover:bg-blue-600 text-white'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
