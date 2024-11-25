@@ -1,5 +1,0 @@
-python-dotenv==1.0.0
-pandas==2.1.1
-numpy==1.24.3
-matplotlib==3.8.0
-agency-swarm==1.0.0 
