@@ -1,36 +1,130 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+Here’s the updated README.md file with the repository name Agent:
 
-## Getting Started
 
-First, run the development server:
+---
 
-```bash
+Agent
+
+Overview
+
+This is the front-end of Agent, a project built using Next.js, a powerful React-based framework for server-rendered and static web applications. The application is designed to deliver high performance, scalability, and modern user experiences.
+
+
+---
+
+Features
+
+Fast and responsive UI built with Next.js
+
+Server-side rendering (SSR) and static site generation (SSG)
+
+API routes for seamless backend integration
+
+Modular and reusable components
+
+Fully responsive design for desktop and mobile
+
+
+
+---
+
+Technologies Used
+
+Framework: Next.js
+
+Styling: Tailwind CSS or [CSS Modules] (replace with your choice)
+
+State Management: Context API/Redux (if used)
+
+API Integration: REST/GraphQL (replace with your choice)
+
+
+
+---
+
+Getting Started
+
+Prerequisites
+
+Make sure you have the following installed on your system:
+
+Node.js (v14 or above)
+
+npm or yarn
+
+
+Installation
+
+1. Clone the repository:
+
+git clone https://github.com/rcout328/agent.git
+
+
+2. Navigate to the project directory:
+
+cd agent
+
+
+3. Install dependencies:
+
+npm install
+
+Or if you’re using Yarn:
+
+yarn install
+
+
+
+Running the Development Server
+
+Start the development server with:
+
 npm run dev
-# or
+
+Or:
+
 yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit http://localhost:3000 to see your application in action.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+Build for Production
 
-To learn more about Next.js, take a look at the following resources:
+To build and optimize the project for production:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+npm run build
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Start the production server:
 
-## Deploy on Vercel
+npm start
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+License
+
+This project is licensed under the MIT License.
+
+
+---
+
+Contributing
+
+Contributions are welcome! Feel free to fork this repository and submit pull requests.
+
+
+---
+
+Contact
+
+For questions or feedback, reach out at:
+
+Email: solovpxoffical@gmail.com
+
+GitHub: rcout328
+
+
+
+---
