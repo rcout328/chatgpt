@@ -7,7 +7,9 @@ jinja2
 python-dotenv
 gradio
 flask
+groq
 flask-socketio
+selenium
 flask-cors
 psutil
 deepgram-sdk

@@ -1,6 +1,7 @@
-python-dotenv==1.0.0
-pandas==2.1.1
-numpy==1.24.3
-beautifulsoup4==4.12.2
-requests==2.31.0
-agency-swarm==1.0.0 
+python-dotenv
+pandas
+numpy
+beautifulsoup4
+requests
+agency-swarm
+selenium

@@ -1,7 +1,8 @@
 "use client";
 
 import { BusinessProvider } from '../context/BusinessContext';
-import Navigation from './Navigation';
+import Navigation from '../components/Navigation';
+// ... existing code ..
 
 export default function ClientLayout({ children }) {
   return (

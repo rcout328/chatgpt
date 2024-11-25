@@ -85,4 +85,4 @@ agency = Agency(
 )
 
 if __name__ == '__main__':
-    agency.demo_gradio()
+    agency.demo_gradio(share=True)  # Set share=True to create a public link

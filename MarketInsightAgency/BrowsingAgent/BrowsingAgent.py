@@ -2,35 +2,34 @@ import json
 import re
 from datetime import datetime
 
-from agency_swarm.agents import Agent
-from agency_swarm.tools.oai import FileSearch
-from typing_extensions import override
-import base64
-from .tools.SerpAPISearch import SerpAPISearch
+from agency_swarm import Agent
+from agency_swarm.tools import CodeInterpreter, FileSearch
 from shared_tools.MarkdownWriter import MarkdownWriter
-from shared_tools.TaskReporter import TaskReporter
+from .tools.SerpAPISearch import SerpAPISearch
 
 
 class BrowsingAgent(Agent):
     SCREENSHOT_FILE_NAME = "screenshot.jpg"
 
-    def __init__(self, selenium_config=None, **kwargs):
+    def __init__(self):
         super().__init__(
             name="BrowsingAgent",
-            description="This agent performs web searches and browsing using SerpAPI and Selenium.",
+            description="Performs web searches and browsing using SerpAPI",
             instructions="./instructions.md",
-            files_folder="./files",
-            schemas_folder="./schemas",
-            tools=[SerpAPISearch, MarkdownWriter, TaskReporter],
-            tools_folder="./tools",
+            tools=[CodeInterpreter, FileSearch, MarkdownWriter, SerpAPISearch],
             temperature=0.7,
-            max_prompt_tokens=4000,
-            model="gpt-4-1106-preview",
-            **kwargs
+            max_prompt_tokens=4000
         )
-        if selenium_config is not None:
-            from .tools.util.selenium import set_selenium_config
-            set_selenium_config(selenium_config)
+
+    async def process_message(self, message):
+        try:
+            # Process the message
+            response = await super().process_message(message)
+            return response
+
+        except Exception as e:
+            print(f"Error in BrowsingAgent: {str(e)}")
+            raise e
 
     def search_web(self, query: str, search_type: str = "search", **params):
         """
@@ -67,30 +66,10 @@ class BrowsingAgent(Agent):
                 }
             )
 
-            # Create task report
-            self.tools["TaskReporter"].run(
-                task_name=f"Web Search - {query}",
-                task_description=f"Performed web search using SerpAPI",
-                findings=[
-                    "Executed search query",
-                    "Retrieved search results",
-                    "Saved search report"
-                ],
-                actions_taken=[
-                    f"Searched for: {query}",
-                    f"Search type: {search_type}",
-                    f"Generated search report"
-                ]
-            )
-
             return search_results
 
         except Exception as e:
             return f"Error performing web search: {str(e)}"
-
-    @override
-    def response_validator(self, message):
-        return message
 
     def take_screenshot(self):
         from .tools.util.selenium import get_web_driver
